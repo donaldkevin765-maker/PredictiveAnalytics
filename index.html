@@ -1075,8 +1075,7 @@
                     const overlay = document.getElementById('qr-modal-overlay');
                     if (!overlay) return;
                     overlay.style.display = 'flex';
-                    const localUrl = window.location.href.replace('localhost', '192.168.220.36');
-                    const url = localUrl.includes('192.168') ? localUrl : (window.location.href.replace('127.0.0.1', '192.168.220.36'));
+                    const url = 'https://donaldkevin765-maker.github.io/PredictiveAnalytics/';
                     document.getElementById('qr-url-text').textContent = url;
                     const container = document.getElementById('qr-code-container');
                     container.innerHTML = '';
