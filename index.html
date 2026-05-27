@@ -1074,7 +1074,7 @@
                     const overlay = document.getElementById('qr-modal-overlay');
                     if (!overlay) return;
                     overlay.style.display = 'flex';
-                    const url = 'https://donaldkevin765-maker.github.io/PredictiveAnalytics/';
+                    const url = 'https://predictive-analytics-kappa.vercel.app';
                     document.getElementById('qr-url-text').textContent = url;
                     const container = document.getElementById('qr-code-container');
                     container.innerHTML = '';
@@ -1591,11 +1591,31 @@
             },
 
             History: {
-                init: function() { this.render(); },
+                init: function() { this.render(); this.syncFromCloud(); },
+                supabaseHeaders: function() {
+                    return { 'apikey': AlphaOS.supabaseKey, 'Authorization': 'Bearer ' + AlphaOS.supabaseKey, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' };
+                },
+                syncFromCloud: async function() {
+                    try {
+                        const res = await fetch(AlphaOS.supabaseUrl + '/rest/v1/analyses?order=id.desc&limit=50', { headers: this.supabaseHeaders() });
+                        if (res.ok) {
+                            const cloud = await res.json();
+                            if (cloud.length > 0) {
+                                localStorage.setItem('alphaos-history', JSON.stringify(cloud));
+                                this.render();
+                            }
+                        }
+                    } catch(e) { /* fallback to localStorage */ }
+                },
                 save: function(data) {
                     const history = JSON.parse(localStorage.getItem('alphaos-history') || '[]');
-                    history.unshift({ id: Date.now(), date: new Date().toLocaleString('it-IT'), ...data });
+                    const entry = { id: Date.now(), date: new Date().toLocaleString('it-IT'), ...data };
+                    history.unshift(entry);
                     localStorage.setItem('alphaos-history', JSON.stringify(history.slice(0, 50)));
+                    fetch(AlphaOS.supabaseUrl + '/rest/v1/analyses', {
+                        method: 'POST', headers: this.supabaseHeaders(),
+                        body: JSON.stringify({ title: data.title, risk: data.risk, profit: data.profit, valid: data.valid, pros: JSON.stringify(data.pros || []), cons: JSON.stringify(data.cons || []), date: entry.date })
+                    }).catch(() => {});
                     AlphaOS.Toast.success('Salvato', 'Analisi salvata nella cronologia');
                 },
                 render: function() {
@@ -1637,6 +1657,9 @@
                 clear: function() {
                     if (confirm('Cancellare tutta la cronologia delle analisi?')) {
                         localStorage.removeItem('alphaos-history');
+                        fetch(AlphaOS.supabaseUrl + '/rest/v1/analyses', {
+                            method: 'DELETE', headers: this.supabaseHeaders()
+                        }).catch(() => {});
                         this.render();
                         AlphaOS.Toast.info('Cronologia', 'Cronologia cancellata');
                     }
@@ -1760,6 +1783,8 @@
         };
 
         window.AlphaOS = AlphaOS;
+        AlphaOS.supabaseUrl = 'https://kbwaolqwdhswgkicbzmx.supabase.co';
+        AlphaOS.supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtid2FvbHF3ZGhzd2draWNiem14Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDgwNjcxMywiZXhwIjoyMDkwMzgyNzEzfQ.M5A2UL9jSsWsKaKe2SrQnOnBVfZX57C7GxixEepxhAQ';
         document.addEventListener('DOMContentLoaded', () => { AlphaOS.start(); });
     </script>
 </body>
