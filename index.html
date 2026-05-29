@@ -62,6 +62,8 @@
         .nav-item.active { background: var(--text-primary); color: var(--bg-base); font-weight: 600; }
         main.content-area { display: flex; flex-direction: column; min-height: 100vh; overflow: hidden; }
         header.topbar { height: 80px; display: flex; align-items: center; justify-content: flex-end; padding: 0 50px; border-bottom: 1px solid var(--border-light); background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); gap: 12px; }
+.topbar-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border-strong); color: var(--text-secondary); padding: 10px 16px; border-radius: var(--radius-sm); cursor: pointer; transition: 0.3s; font-family: 'Inter', sans-serif; font-weight: 500; font-size: 0.85rem; white-space: nowrap; }
+.topbar-btn:hover { color: var(--text-primary); border-color: var(--border-strong); }
         .view-container { flex-grow: 1; padding: 50px; overflow-y: auto; scroll-behavior: smooth; position: relative; }
         .view { display: none; opacity: 0; transform: translateY(8px); transition: opacity 0.5s cubic-bezier(0.23, 1, 0.32, 1), transform 0.5s cubic-bezier(0.23, 1, 0.32, 1); }
         .view.active { display: block; animation: viewFadeIn 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
@@ -112,6 +114,8 @@
         #location-popup { display: none; position: fixed; top: 0; right: 0; height: 100vh; width: 100%; max-width: 550px; background: rgba(8, 10, 12, 0.98); backdrop-filter: blur(40px); border-left: 2px solid var(--brand-accent); padding: 50px 40px; box-shadow: -20px 0 80px rgba(0,0,0,0.9); z-index: 30001; flex-direction: column; gap: 20px; animation: slideInHUD 0.7s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
         @keyframes slideInHUD { from { transform: translateX(100%); } to { transform: translateX(0); } }
         @keyframes slideOutHUD { from { transform: translateX(0); } to { transform: translateX(100%); } }
+@keyframes menuSlideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes menuSlideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(-100%); opacity: 0; } }
         .loc-popup-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 20px; }
         .loc-popup-title { font-family: 'Fira Code', monospace; font-weight: 600; color: var(--text-primary); font-size: 1.1rem; display: flex; flex-direction: column; gap: 5px; text-transform: uppercase; letter-spacing: 2px; }
         .loc-popup-title span.sub { font-size: 0.75rem; color: var(--brand-accent); letter-spacing: 4px; }
@@ -272,7 +276,56 @@
         @keyframes fadeInCV { from { opacity: 0; } to { opacity: 1; } }
         .cv-body-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 60px; }
         @media (max-width: 1024px) { .cv-body-grid { grid-template-columns: 1fr; } .cv-container { padding: 40px 30px; } .cv-header-info { flex-direction: column; text-align: center; } .cv-name { font-size: 2.8rem; } }
-        @media (max-width: 768px) { #app-layout { grid-template-columns: 1fr; } aside.sidebar { display: none; } .hero-section { grid-template-columns: 1fr; } .modules-grid { grid-template-columns: 1fr; } .analysis-dashboard { grid-template-columns: 1fr; } .cv-container { padding: 30px 20px; } .cv-name { font-size: 2.2rem; } header.topbar { padding: 0 20px; } .view-container { padding: 30px 20px; } .tv-workspace { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+#app-layout { grid-template-columns: 1fr; }
+aside.sidebar { display: none; }
+aside.sidebar.open { display: flex; position: fixed; inset: 0; width: 100%; z-index: 9999; background: rgba(0,0,0,0.96); backdrop-filter: blur(30px); padding: 30px 24px; border: none; animation: menuSlideIn 0.3s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
+aside.sidebar.open .brand-logo { margin-bottom: 40px; }
+aside.sidebar.open nav.menu { flex-grow: 1; }
+#menu-toggle { display: flex !important; }
+.topbar-btn { display: none; }
+.topbar-btn.mobile-show { display: flex; }
+header.topbar { justify-content: flex-start; padding: 0 16px; gap: 8px; height: 60px; }
+.hero-section { grid-template-columns: 1fr; gap: 20px; margin-bottom: 30px; text-align: center; }
+.hero-text h1 { font-size: clamp(1.8rem, 6vw, 2.5rem); }
+.hero-text p { font-size: 0.95rem; max-width: 100%; }
+.globe-wrapper { height: 200px; }
+.css-earth { width: 140px; height: 140px; }
+.modules-grid { grid-template-columns: 1fr; padding-top: 24px; }
+.module-card { padding: 20px; }
+.analyzer-header h2 { font-size: 1.4rem; }
+.analyzer-header p { font-size: 0.9rem; margin-bottom: 16px; }
+.settings-group { padding: 20px; }
+.settings-row { flex-direction: column; align-items: flex-start; gap: 12px; }
+.input-wrap input, select.minimal-select { width: 100%; }
+.analysis-dashboard { grid-template-columns: 1fr; gap: 30px; padding-top: 20px; }
+.view-container { padding: 20px 16px; }
+.stage-grid { grid-template-columns: 1fr !important; }
+.cv-container { padding: 20px 16px; }
+.cv-name { font-size: 1.8rem; }
+.cv-header-info { flex-direction: column; text-align: center; gap: 16px; }
+.cv-body-grid { grid-template-columns: 1fr; gap: 30px; }
+.cv-toggle-btn { padding: 8px 16px; font-size: 0.75rem; }
+.cv-toolbar-doc { gap: 8px; flex-wrap: wrap; }
+.tv-workspace { grid-template-columns: 1fr; }
+#location-popup { max-width: 100%; padding: 30px 20px; }
+.asset-modal { width: 100vw; height: 100vh; border-radius: 0; }
+.tv-toolbar { padding: 16px 20px; flex-wrap: wrap; gap: 12px; }
+.tv-asset-name { font-size: 1.4rem; }
+.tv-chart-area { padding: 20px; }
+.tv-side-panel { min-height: 300px; }
+.search-box input { padding: 14px 16px; font-size: 0.9rem; }
+.chat-layout { height: calc(100vh - 140px); }
+.chat-input-area { flex-direction: column; }
+.chat-input-area button { padding: 14px; width: 100%; }
+.msg-bubble { max-width: 90%; font-size: 0.9rem; }
+.signal-grid { grid-template-columns: 1fr; }
+#elite-radar div[style*="grid-template-columns: 350px 1fr"] { grid-template-columns: 1fr !important; height: auto !important; min-height: auto !important; }
+#elite-radar div[style*="grid-template-columns: 350px 1fr"] div[style*="padding-left: 50px"] { padding-left: 0; border-left: none; }
+.topbar .pdf-export-btn { padding: 8px 12px; font-size: 0.75rem; }
+#pdf-viewer { min-height: 300px; }
+#pdf-prev, #pdf-next { padding: 6px 12px; font-size: 0.75rem; }
+}
         #neural-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9997; pointer-events: none; opacity: 0; transition: opacity 0.5s ease; }
         #neural-canvas.active { opacity: 1; }
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 40000; display: flex; flex-direction: column; gap: 12px; pointer-events: none; max-width: 380px; }
@@ -423,12 +476,14 @@
         </aside>
         <main class="content-area">
             <header class="topbar">
-                <button onclick="AlphaOS.UI.switchView('dashboard')" style="background: rgba(14, 165, 233, 0.15); border: 1px solid var(--brand-accent); color: #fff; padding: 10px 20px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600;">DASHBOARD</button>
-                <button onclick="AlphaOS.Voice.toggle()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-strong); color: var(--text-secondary); padding: 10px 16px; border-radius: var(--radius-sm); cursor: pointer; transition: 0.3s;">Voice</button>
-                <button onclick="AlphaOS.Theme.toggle()" id="btn-theme" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-strong); color: var(--text-secondary); padding: 10px 16px; border-radius: var(--radius-sm); cursor: pointer; transition: 0.3s; font-size: 1rem;">☀️</button>
-                <button onclick="AlphaOS.UI.switchView('history')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-strong); color: var(--text-secondary); padding: 10px 16px; border-radius: var(--radius-sm); cursor: pointer; transition: 0.3s;">Cronologia</button>
+                <button id="menu-toggle" onclick="AlphaOS.UI.toggleMobileMenu()" style="display: none; background: transparent; border: none; color: var(--text-primary); font-size: 1.5rem; cursor: pointer; padding: 8px; line-height: 1;">☰</button>
+                <button onclick="AlphaOS.UI.switchView('dashboard')" class="topbar-btn" style="background: rgba(14,165,233,0.15); border-color: var(--brand-accent); color: #fff; font-weight: 600;">DASHBOARD</button>
+                <button onclick="AlphaOS.Voice.toggle()" class="topbar-btn">Voice</button>
+                <button onclick="AlphaOS.Theme.toggle()" id="btn-theme" class="topbar-btn" style="font-size: 1rem;">☀️</button>
+                <button onclick="AlphaOS.UI.switchView('history')" class="topbar-btn">Cronologia</button>
                 <button onclick="AlphaOS.PDF.exportReport()" class="pdf-export-btn">Export PDF</button>
             </header>
+            <div id="menu-overlay" onclick="AlphaOS.UI.closeMobileMenu()" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9998;"></div>
             <div class="view-container">
                 <section id="dashboard" class="view active">
                     <div class="hero-section">
@@ -1063,6 +1118,25 @@
                     if (viewId === 'timeline') AlphaOS.TrendAnalysis.init();
                     if (viewId === 'advisor' || viewId === 'engine') AlphaOS.NeuralNet.activate();
                     if (viewId === 'about') { const v = document.getElementById('pitch-video'); if (v) { v.currentTime = 0; v.play().catch(() => {}); } }
+                    this.closeMobileMenu();
+                },
+                toggleMobileMenu: function() {
+                    const sidebar = document.querySelector('aside.sidebar');
+                    const overlay = document.getElementById('menu-overlay');
+                    if (sidebar && overlay) {
+                        sidebar.classList.toggle('open');
+                        overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+                        document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+                    }
+                },
+                closeMobileMenu: function() {
+                    const sidebar = document.querySelector('aside.sidebar');
+                    const overlay = document.getElementById('menu-overlay');
+                    if (sidebar && overlay) {
+                        sidebar.classList.remove('open');
+                        overlay.style.display = 'none';
+                        document.body.style.overflow = '';
+                    }
                 },
                 openModal: function(callback) {
                     const modal = document.getElementById('custom-modal');
