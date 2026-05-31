@@ -680,6 +680,9 @@
                             </div>
                         </div>
                         <div class="details-section">
+                            <div id="analysis-context"></div>
+                            <div id="analysis-factors"></div>
+                            <div id="analysis-verification" style="margin-bottom:16px;padding:14px;background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-md);"></div>
                             <div class="pro-con-card"><h4 style="color: var(--semantic-success);">Semaforo Verde</h4><ul class="pro-con-list" id="list-pros"></ul></div>
                             <div class="pro-con-card"><h4 style="color: var(--semantic-danger);">Fattori Critici</h4><ul class="pro-con-list" id="list-cons"></ul></div>
                             <div class="pro-con-card" style="border-left: 4px solid var(--brand-accent);">
@@ -1029,12 +1032,12 @@
                 },
 
                 providers: [
-                    { id: 'gemini', name: 'Google Gemini', keyField: 'apiKey', enabled: true,
+                    { id: 'gemini', name: 'Google Gemini 2.5 Pro', keyField: 'apiKey', enabled: true,
                       call: async function(prompt) {
                           const key = AlphaOS.apiKey;
                           if (!key) return null;
                           const res = await AlphaOS.API.fetchWithBackoff(
-                              `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
+                              `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-exp-03-25:generateContent?key=${key}`,
                               { method: 'POST', headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) }
                           );
@@ -1049,12 +1052,12 @@
                               'https://api.openai.com/v1/chat/completions',
                               { method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-                                body: JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'user', content: prompt }] }) }
+                                body: JSON.stringify({ model: 'gpt-4o', messages: [{ role: 'user', content: prompt }] }) }
                           );
                           return res?.choices?.[0]?.message?.content || null;
                       }
                     },
-                    { id: 'anthropic', name: 'Anthropic Claude', keyField: 'apiKeyAnthropic', enabled: true,
+                    { id: 'anthropic', name: 'Anthropic Claude Opus', keyField: 'apiKeyAnthropic', enabled: true,
                       call: async function(prompt) {
                           const key = AlphaOS.apiKeyAnthropic;
                           if (!key) return null;
@@ -1062,7 +1065,7 @@
                               'https://api.anthropic.com/v1/messages',
                               { method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
-                                body: JSON.stringify({ model: 'claude-3-haiku-20240307', messages: [{ role: 'user', content: prompt }] }) }
+                                body: JSON.stringify({ model: 'claude-3-opus-20240229', max_tokens: 4096, messages: [{ role: 'user', content: prompt }] }) }
                           );
                           return res?.content?.[0]?.text || null;
                       }
@@ -1784,9 +1787,29 @@
                     }
                     if (status) status.innerText = `> Consultazione ${enabled.map(p => p.name).join(' + ')}...`;
 
-                    const prompt = `Sei un analista strategico per Predictive Analytics. Analizza l'idea: "${input.value.trim()}".
-Rispondi SOLO con un JSON valido (senza markdown, senza codice extra) in questo formato esatto:
-{"risk": <numero 0-100>, "profit": <numero 0-100>, "validity": <numero 0-100>, "pros": ["<pro 1>", "<pro 2>", "<pro 3>"], "cons": ["<con 1>", "<con 2>", "<con 3>"]}`;
+                    const prompt = `Sei un analista senior di Predictive Analytics. Analizza l'idea imprenditoriale in modo approfondito e verifica ogni valutazione con dati di mercato reali.
+
+IDEA: "${input.value.trim()}"
+
+REQUISITI:
+- Analizza il contesto di mercato attuale (trend, competitor, normative)
+- Verifica ogni affermazione con fonti/dati reali
+- Assegna un confidence score a ogni metrica
+- Considera rischi normativi, competitivi, operativi
+
+Rispondi SOLO con un JSON valido (senza markdown):
+{
+  "risk": <0-100>,
+  "profit": <0-100>,
+  "validity": <0-100>,
+  "confidence": <0-100 (quanto sei sicuro dell'analisi)>,
+  "market_context": "Analisi del mercato attuale (max 80 parole)",
+  "key_factors": ["fattore chiave 1", "fattore chiave 2", "fattore chiave 3"],
+  "pros": ["punto di forza 1", "punto di forza 2", "punto di forza 3"],
+  "cons": ["criticità 1", "criticità 2", "criticità 3"],
+  "sources": ["fonte/referenza 1", "fonte/referenza 2"],
+  "verification": "Come sono stati verificati questi dati"
+}`;
 
                     const results = await this.callEnsemble(prompt);
                     if (results.length === 0) {
@@ -1795,7 +1818,7 @@ Rispondi SOLO con un JSON valido (senza markdown, senza codice extra) in questo 
                         return;
                     }
 
-                    let risks = [], profits = [], valids = [], allPros = [], allCons = [];
+                    let risks = [], profits = [], valids = [], confidences = [], allPros = [], allCons = [], allSources = [], allFactors = [], allContexts = [], allVerifications = [];
                     results.forEach(r => {
                         try {
                             const clean = r.text.replace(/```json/gi, '').replace(/```/g, '').trim();
@@ -1803,27 +1826,72 @@ Rispondi SOLO con un JSON valido (senza markdown, senza codice extra) in questo 
                             if (json.risk !== undefined) risks.push(Math.max(0, Math.min(100, parseInt(json.risk))));
                             if (json.profit !== undefined) profits.push(Math.max(0, Math.min(100, parseInt(json.profit))));
                             if (json.validity !== undefined) valids.push(Math.max(0, Math.min(100, parseInt(json.validity))));
+                            if (json.confidence !== undefined) confidences.push(Math.max(0, Math.min(100, parseInt(json.confidence))));
                             if (json.pros) allPros.push(...json.pros);
                             if (json.cons) allCons.push(...json.cons);
+                            if (json.sources) allSources.push(...json.sources);
+                            if (json.key_factors) allFactors.push(...json.key_factors);
+                            if (json.market_context) allContexts.push(json.market_context);
+                            if (json.verification) allVerifications.push(json.verification);
                         } catch(e) {}
                     });
 
                     const avg = (arr) => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 50;
                     const risk = avg(risks), profit = avg(profits), valid = avg(valids);
+                    const confidence = confidences.length ? avg(confidences) : null;
                     const dedup = (arr) => [...new Set(arr.map(s => s.toLowerCase().trim()))].slice(0, 5);
                     const pros = allPros.length ? dedup(allPros) : ['Potenziale di mercato identificato'];
                     const cons = allCons.length ? dedup(allCons) : ['Necessaria analisi approfondita'];
+                    const sources = allSources.length ? [...new Set(allSources)].slice(0, 4) : [];
+                    const keyFactors = allFactors.length ? [...new Set(allFactors)].slice(0, 4) : [];
+                    const marketContext = allContexts.length ? allContexts[0] : '';
+                    const verification = allVerifications.length ? allVerifications[0] : '';
 
                     this.lastResult = { risk, profit, valid, pros, cons, title: input.value.trim(), providers: results.map(r => r.name) };
 
                     if (status) status.innerText = `> Analisi completata (${results.map(r => r.name).join(', ')}).`;
                     const providersEl = document.getElementById('engine-providers');
                     if (providersEl) providersEl.innerHTML = results.map(r => `<span style="color:var(--brand-accent);">●</span> ${r.name}`).join(' &nbsp;');
+
                     this.updateRadar(risk, profit, valid);
                     const listPros = document.getElementById('list-pros');
                     const listCons = document.getElementById('list-cons');
                     if (listPros) listPros.innerHTML = pros.map(p => '<li>' + p + '</li>').join('');
                     if (listCons) listCons.innerHTML = cons.map(c => '<li>' + c + '</li>').join('');
+
+                    const contextEl = document.getElementById('analysis-context');
+                    if (contextEl && marketContext) {
+                        contextEl.innerHTML = `<div style="margin-bottom:16px;padding:14px;background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-md);">
+                            <div style="font-size:0.7rem;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Contesto di Mercato</div>
+                            <div style="font-size:0.9rem;color:var(--text-secondary);line-height:1.6;">${marketContext}</div>
+                        </div>`;
+                    }
+                    const factorsEl = document.getElementById('analysis-factors');
+                    if (factorsEl && keyFactors.length) {
+                        factorsEl.innerHTML = `<div style="margin-bottom:16px;padding:14px;background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-md);">
+                            <div style="font-size:0.7rem;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Fattori Chiave</div>
+                            ${keyFactors.map(f => `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-light);font-size:0.9rem;color:var(--text-secondary);"><span style="color:var(--brand-accent);">▸</span> ${f}</div>`).join('')}
+                        </div>`;
+                    }
+                    const verificationEl = document.getElementById('analysis-verification');
+                    if (verificationEl) {
+                        let html = '';
+                        if (confidence !== null) {
+                            const color = confidence > 70 ? 'var(--semantic-success)' : confidence > 40 ? 'var(--semantic-warning)' : 'var(--semantic-danger)';
+                            html += `<div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;">
+                                <span style="font-size:0.75rem;color:var(--text-tertiary);text-transform:uppercase;">Affidabilità:</span>
+                                <span style="font-family:'Fira Code',monospace;font-size:1.1rem;font-weight:700;color:${color};">${confidence}%</span>
+                            </div>`;
+                        }
+                        if (sources.length) {
+                            html += `<div style="margin-bottom:8px;font-size:0.75rem;color:var(--text-tertiary);text-transform:uppercase;">Fonti verificate:</div>
+                                ${sources.map(s => `<div style="display:flex;align-items:flex-start;gap:6px;padding:4px 0;font-size:0.82rem;color:var(--text-secondary);"><span style="color:var(--brand-accent);font-size:0.65rem;">📄</span> ${s}</div>`).join('')}`;
+                        }
+                        if (verification) {
+                            html += `<div style="margin-top:10px;padding:8px 12px;background:rgba(14,165,233,0.08);border-radius:6px;font-size:0.8rem;color:var(--text-tertiary);border-left:2px solid var(--brand-accent);">${verification}</div>`;
+                        }
+                        if (html) verificationEl.innerHTML = html;
+                    }
                     if (dashboard) dashboard.style.display = 'grid';
                     if (btn) btn.disabled = false;
                     AlphaOS.History.save({ title: input.value.trim(), risk, profit, valid, pros, cons });
@@ -1881,10 +1949,36 @@ Rispondi SOLO con un JSON valido (senza markdown, senza codice extra) in questo 
                     outputBox.innerText = "Generazione strategia AI in corso...";
                     outputBox.classList.add('show');
 
-                    const prompt = `Sei un consulente strategico specializzato in Go-To-Market. Genera una strategia di lancio dettagliata per: "${input.value.trim()}".
-Struttura in 3 fasi: PRE-LANCIO, LANCIO, SCALING.
-Includi: COSA FARE, COSA NON FARE, KPI da monitorare, tempistiche indicative.
-Massimo 350 parole. Rispondi in Italiano.`;
+                    const prompt = `Sei un consulente strategico senior specializzato in Go-To-Market. Genera una strategia di lancio professionale e verificata per: "${input.value.trim()}".
+
+REQUISITI:
+- Analisi basata su dati di mercato reali e tendenze attuali
+- Ogni fase deve includere KPI misurabili e tempistiche realistiche
+- Cita fonti/dati di mercato dove pertinente
+
+Struttura:
+
+FASE 1: PRE-LANCIO
+- Ricerche di mercato e analisi competitor
+- Setup operativo e compliance
+- Budget e risorse necessarie
+- KPI: [metriche misurabili]
+
+FASE 2: LANCIO
+- Strategia di go-to-market
+- Canali di acquisizione
+- Partner e alleanze strategiche
+- KPI: [metriche misurabili]
+
+FASE 3: SCALING
+- Crescita e ottimizzazione
+- Nuovi mercati
+- Data monetization
+- KPI: [metriche misurabili]
+
+COSA FARE / COSA NON FARE / RIFERIMENTI
+
+Massimo 400 parole. Rispondi in Italiano.`;
 
                     const results = await this.callEnsemble(prompt);
                     if (results.length === 0) return;
@@ -1910,9 +2004,22 @@ Massimo 350 parole. Rispondi in Italiano.`;
                     outputBox.innerHTML = "Generazione scenario Cigno Nero...";
                     outputBox.classList.add('show');
 
-                    const prompt = `Sei un analista di rischio specializzato in scenari "Cigno Nero" (Black Swan Events). Simula un evento catastrofico specifico e realistico per: "${input.value.trim()}".
-Struttura in: SCENARIO, IMPATTO, PERCHE' DISTRUGGE IL BUSINESS, MITIGAZIONE, AZIONE IMMEDIATA (3 passi).
-Massimo 300 parole. Rispondi in Italiano.`;
+                    const prompt = `Sei un analista di rischio specializzato in scenari "Cigno Nero" (Black Swan Events) con esperienza in predictive analytics. Simula un evento catastrofico realistico basato su trend economici e normativi attuali per: "${input.value.trim()}".
+
+REQUISITI:
+- Scenario basato su rischi reali e verificabili del settore
+- Impatto quantificato con dati e percentuali
+- Citare normative, trend di mercato o precedenti storici come fonti
+
+Struttura:
+
+SCENARIO: [descrizione evento inaspettato ma plausibile, con riferimenti a trend reali]
+IMPATTO: [conseguenze quantitative, con stime basate su dati di settore]
+PERCHE' DISTRUGGE IL BUSINESS: [vulnerabilità specifiche del modello]
+MITIGAZIONE: [strategia di resilience]
+AZIONE IMMEDIATA: [3 passi concreti da eseguire subito]
+
+Massimo 350 parole. Rispondi in Italiano.`;
 
                     const results = await this.callEnsemble(prompt);
                     if (results.length === 0) return;
