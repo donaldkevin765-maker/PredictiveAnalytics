@@ -51,7 +51,8 @@
         @keyframes float { 0% { transform: translate(0, 0) scale(1); } 33% { transform: translate(10vw, 15vh) scale(1.1); } 66% { transform: translate(-10vw, -10vh) scale(0.9); } 100% { transform: translate(15vw, -5vh) scale(1.05); } }
         @keyframes colorshift { 0% { background-color: #0f172a; } 16% { background-color: #1e1b4b; } 33% { background-color: #31081f; } 50% { background-color: #064e3b; } 66% { background-color: #1a0826; } 83% { background-color: #082f49; } 100% { background-color: #0f172a; } }
         .vignette { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9998; background: radial-gradient(circle at center, transparent 40%, #000000 130%); }
-        #app-layout { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; visibility: hidden; }
+        #app-layout { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; opacity: 0; transition: opacity 0.8s cubic-bezier(0.23, 1, 0.32, 1); }
+        #app-layout.visible { opacity: 1; }
         aside.sidebar { border-right: 1px solid var(--border-light); background: rgba(0,0,0,0.6); backdrop-filter: blur(20px); display: flex; flex-direction: column; padding: 40px 24px; }
         .brand-logo { font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 60px; letter-spacing: -0.5px; flex-shrink: 0; }
         nav.menu { display: flex; flex-direction: column; gap: 8px; flex-grow: 1; overflow-y: auto; padding-right: 8px; margin-bottom: 20px; }
@@ -2319,12 +2320,18 @@ Massimo 350 parole. Rispondi in Italiano.`;
                         setTimeout(() => {
                             if (bootGateway) bootGateway.style.display = 'none';
                             const appLayout = document.getElementById('app-layout');
-                            if (appLayout) appLayout.style.visibility = 'visible';
+                            if (appLayout) appLayout.classList.add('visible');
                             this.Graphics.initThreeJSGlobe();
                             AlphaOS.Toast.success('Sistema', 'Predictive Analytics avviato con successo');
                         }, 600);
                     }, 1500);
                 } catch (e) { }
+                    setTimeout(() => {
+                        const bootGateway = document.getElementById('boot-gateway');
+                        if (bootGateway) { bootGateway.style.opacity = '0'; setTimeout(() => { bootGateway.style.display = 'none'; }, 600); }
+                        const appLayout = document.getElementById('app-layout');
+                        if (appLayout) appLayout.classList.add('visible');
+                    }, 5000);
             }
         };
 
