@@ -652,9 +652,9 @@
 <section id="engine" class="view">
                     <div class="analyzer-header">
                         <h2>Validazione Idea</h2>
-                        <p>Inserisci i parametri dell'iniziativa. Calcoleremo rischio, redditivita e criticita operative.</p>
+                        <p>Analisi AI predittiva per la tua idea di business. Rischio, profitto e fattibilità calcolati in tempo reale.</p>
                         <div class="search-box">
-                            <input type="text" id="engine-input" placeholder="Es. Apertura nuova sede o lancio prodotto..." onkeypress="if(event.key==='Enter') AlphaOS.Engine.runAnalysis()">
+                            <input type="text" id="engine-input" placeholder="Es. Apertura nuova sede, lancio prodotto, startup..." onkeypress="if(event.key==='Enter') AlphaOS.Engine.runAnalysis()">
                             <button onclick="AlphaOS.Engine.runAnalysis()" id="btn-analyze" class="ai-btn">Esegui</button>
                         </div>
                         <div class="status-log" id="engine-status"></div>
@@ -1676,23 +1676,77 @@
             },
 
             Engine: {
-                runAnalysis: async function() {
-                    const input = document.getElementById('engine-input'); if (!input || !input.value.trim()) return;
-                    const status = document.getElementById('engine-status'), dashboard = document.getElementById('analysis-results'), btn = document.getElementById('btn-analyze');
-                    if (dashboard) dashboard.style.display = 'none'; if (btn) btn.disabled = true; if (status) status.innerText = "> Inizializzazione cluster IA...";
-                    AlphaOS.NeuralNet.activate();
-                    const risk = Math.floor(Math.random() * 40) + 20, profit = Math.floor(Math.random() * 40) + 40, valid = Math.floor(Math.random() * 30) + 50;
-                    setTimeout(() => {
-                        this.updateRadar(risk, profit, valid);
-                        const listPros = document.getElementById('list-pros'), listCons = document.getElementById('list-cons');
-                        if (listPros) listPros.innerHTML = '<li>Alta domanda di mercato nel settore</li><li>Costi operativi sotto controllo con sovrastima</li><li>Scalabilita immediata del modello</li>';
-                        if (listCons) listCons.innerHTML = '<li>Competizione agguerrita nel primo anno</li><li>Necessita di compliance GDPR rigorosa</li><li>Rischio di sottovalutazione dei tempi</li>';
-                        if (status) status.innerText = "> Elaborazione completata.";
-                        if (dashboard) dashboard.style.display = 'grid'; if (btn) btn.disabled = false;
-                        AlphaOS.History.save({ title: input.value.trim(), risk, profit, valid, pros: ['Alta domanda di mercato nel settore','Costi operativi sotto controllo con sovrastima','Scalabilita immediata del modello'], cons: ['Competizione agguerrita nel primo anno','Necessita di compliance GDPR rigorosa','Rischio di sottovalutazione dei tempi'] });
-                        AlphaOS.Toast.success('Analisi', 'Validazione completata con successo');
-                    }, 1500);
+                lastResult: null,
+
+                callAI: async function(promptText) {
+                    if (!AlphaOS.apiKey) {
+                        AlphaOS.Toast.warning('API Key Mancante', 'Vai in Impostazioni e inserisci una chiave API Gemini');
+                        return null;
+                    }
+                    try {
+                        const response = await AlphaOS.API.fetchWithBackoff({
+                            contents: [{ parts: [{ text: promptText }] }]
+                        });
+                        if (response && response.candidates && response.candidates[0]) {
+                            return response.candidates[0].content.parts[0].text;
+                        }
+                        return null;
+                    } catch (e) {
+                        AlphaOS.Toast.error('AI Error', 'Errore nella chiamata API: ' + (e.message || ''));
+                        return null;
+                    }
                 },
+
+                runAnalysis: async function() {
+                    const input = document.getElementById('engine-input');
+                    if (!input || !input.value.trim()) return;
+                    const status = document.getElementById('engine-status');
+                    const dashboard = document.getElementById('analysis-results');
+                    const btn = document.getElementById('btn-analyze');
+                    if (dashboard) dashboard.style.display = 'none';
+                    if (btn) btn.disabled = true;
+                    if (status) status.innerText = "> Analisi in corso con AI...";
+                    AlphaOS.NeuralNet.activate();
+
+                    const prompt = `Sei un analista strategico per Predictive Analytics. Analizza l'idea: "${input.value.trim()}".
+Rispondi SOLO con un JSON valido (senza markdown, senza codice extra) in questo formato esatto:
+{"risk": <numero 0-100>, "profit": <numero 0-100>, "validity": <numero 0-100>, "pros": ["<punto positivo 1>", "<punto positivo 2>", "<punto positivo 3>"], "cons": ["<punto critico 1>", "<punto critico 2>", "<punto critico 3>"]}`;
+
+                    const aiText = await this.callAI(prompt);
+                    if (!aiText) {
+                        if (status) status.innerText = "> Errore: impossibile contattare l'AI.";
+                        if (btn) btn.disabled = false;
+                        return;
+                    }
+
+                    try {
+                        const clean = aiText.replace(/```json/gi, '').replace(/```/g, '').trim();
+                        const json = JSON.parse(clean);
+                        const risk = Math.max(0, Math.min(100, parseInt(json.risk) || 50));
+                        const profit = Math.max(0, Math.min(100, parseInt(json.profit) || 50));
+                        const valid = Math.max(0, Math.min(100, parseInt(json.validity) || 50));
+                        const pros = json.pros && json.pros.length ? json.pros : ['Potenziale di mercato identificato'];
+                        const cons = json.cons && json.cons.length ? json.cons : ['Necessaria analisi approfondita'];
+
+                        this.lastResult = { risk, profit, valid, pros, cons, title: input.value.trim() };
+
+                        this.updateRadar(risk, profit, valid);
+                        const listPros = document.getElementById('list-pros');
+                        const listCons = document.getElementById('list-cons');
+                        if (listPros) listPros.innerHTML = pros.map(p => '<li>' + p + '</li>').join('');
+                        if (listCons) listCons.innerHTML = cons.map(c => '<li>' + c + '</li>').join('');
+                        if (status) status.innerText = "> Analisi AI completata.";
+                        if (dashboard) dashboard.style.display = 'grid';
+                        if (btn) btn.disabled = false;
+                        AlphaOS.History.save({ title: input.value.trim(), risk, profit, valid, pros, cons });
+                        AlphaOS.Toast.success('Analisi', 'Validazione AI completata con successo');
+                    } catch (e) {
+                        if (status) status.innerText = "> Errore: risposta AI non valida.";
+                        if (btn) btn.disabled = false;
+                        AlphaOS.Toast.error('Errore', 'Impossibile analizzare la risposta AI. Riprova.');
+                    }
+                },
+
                 updateRadar: function(risk, profit, valid) {
                     const poly = document.getElementById('radar-shape'); const cx = 100, cy = 100, r = 80;
                     const rR = (risk / 100) * r, pR = (profit / 100) * r, vR = (valid / 100) * r;
@@ -1700,6 +1754,7 @@
                     if (poly) poly.setAttribute('points', `${p1x},${p1y} ${p2x},${p2y} ${p3x},${p3y}`);
                     AlphaOS.UI.animateValue('val-risk', risk); AlphaOS.UI.animateValue('val-profit', profit); AlphaOS.UI.animateValue('val-valid', valid);
                 },
+
                 reconfigureOS: function() {
                     AlphaOS.UI.openModal(async (userInputs) => {
                         try {
@@ -1728,32 +1783,68 @@
                         } catch (e) { const overlay = document.getElementById('reconfig-overlay'); if (overlay) overlay.style.display = 'none'; }
                     });
                 },
+
                 generateLaunchStrategy: async function() {
-                    const input = document.getElementById('engine-input').value, outputBox = document.getElementById('launch-output'), btn = document.getElementById('btn-launch');
-                    if (!input || !outputBox || !btn) return;
-                    if (!input.trim()) { outputBox.style.display = 'block'; outputBox.innerText = "Inserisci prima un'idea nel campo di ricerca."; return; }
-                    outputBox.style.display = 'block'; outputBox.innerText = "Elaborazione strategia di lancio..."; outputBox.classList.add('show'); btn.disabled = true;
-                    setTimeout(() => {
-                        outputBox.innerHTML = `STRATEGIA DI LANCIO - 3 FASI\n\nFASE 1: PRE-LANCIO (Settimane 1-4)\n• Analisi mercato locale e competitor diretti\n• Setup infrastruttura GDPR e TVCC\n• Sovrastima costi del 35% per sicurezza\n\nFASE 2: LANCIO (Settimane 5-8)\n• Campagna marketing mirata sulla zona\n• Raccolta consensi multi-livello\n• Monitoraggio KPI giornaliero\n\nFASE 3: SCALING (Settimane 9-12)\n• Ottimizzazione basata sui dati raccolti\n• Espansione a zone limitrofe\n• Attivazione data monetization ex-clienti\n\nTips: COSA FARE\n• Documenta ogni processo per compliance\n• Mantieni buffer finanziario del 20%\n• Testa A/B su ogni campagna marketing\n\nTips: COSA NON FARE\n• Non sottovalutare i costi nascosti\n• Non lanciare senza GDPR completo\n• Non ignorare il feedback dei primi clienti`;
-                        btn.disabled = false;
-                        AlphaOS.Toast.success('Strategia', 'Go-To-Market generato con successo');
-                    }, 1500);
+                    const input = document.getElementById('engine-input');
+                    const outputBox = document.getElementById('launch-output');
+                    if (!input || !outputBox) return;
+                    if (!input.value.trim()) {
+                        outputBox.style.display = 'block';
+                        outputBox.innerText = "Inserisci prima un'idea nel campo di ricerca.";
+                        outputBox.classList.add('show');
+                        return;
+                    }
+                    outputBox.style.display = 'block';
+                    outputBox.innerText = "Generazione strategia AI in corso...";
+                    outputBox.classList.add('show');
+
+                    const prompt = `Sei un consulente strategico specializzato in Go-To-Market. Genera una strategia di lancio dettagliata per: "${input.value.trim()}".
+Struttura in 3 fasi: PRE-LANCIO, LANCIO, SCALING.
+Includi: COSA FARE, COSA NON FARE, KPI da monitorare, tempistiche indicative.
+Massimo 400 parole. Rispondi in Italiano.`;
+
+                    const aiText = await this.callAI(prompt);
+                    if (!aiText && !AlphaOS.apiKey) return;
+                    outputBox.innerHTML = (aiText || 'Impossibile generare strategia. Verifica la chiave API in Impostazioni.').replace(/\n/g, '<br>');
+                    if (aiText) AlphaOS.Toast.success('Strategia', 'Go-To-Market generato con AI');
                 },
+
                 simulateBlackSwan: async function() {
-                    const input = document.getElementById('engine-input').value, outputBox = document.getElementById('launch-output'), btn = document.getElementById('btn-black-swan');
-                    if (!input || !outputBox || !btn) return;
-                    if (!input.trim()) { outputBox.style.display = 'block'; outputBox.innerText = "Inserisci prima un'idea nel campo di ricerca."; return; }
-                    outputBox.style.display = 'block'; outputBox.innerHTML = "Generazione evento Cigno Nero..."; outputBox.classList.add('show'); btn.disabled = true;
-                    setTimeout(() => {
-                        outputBox.innerHTML = `EVENTO CIGNO NERO SIMULATO\n\nSCENARIO: Nuova regolamentazione GDPR stringente entra in vigore senza preavviso, bloccando la cessione dati a terzi per 6 mesi.\n\nIMPATTO:\n• Perdita stimata: 40% del revenue da data monetization\n• Costi di compliance aggiuntivi: +25%\n• Rischio sanzioni: fino al 4% del fatturato globale\n\nPERCHE' DISTRUGGE IL BUSINESS:\nSe non hai sovrastimato i costi, non hai il cuscinetto per assorbire:\n1. I 6 mesi senza revenue da data selling\n2. I costi legali per adeguamento immediato\n3. Le potenziali sanzioni del Garante\n\nSCAPPATOIA LEGALE:\nUtilizza la clausola di "interesse legittimo" (Art. 6.1.f GDPR) per continuare il trattamento dei dati anonimizzati. I dati aggregati e anonimizzati NON sono soggetti a GDPR e possono essere venduti legalmente a partner di ricerca di mercato.\n\nAZIONE IMMEDIATA:\n1. Anonimizza tutto lo storico clienti\n2. Crea pacchetto dati aggregati per partner\n3. Aggiorna privacy policy entro 30 giorni`;
-                        btn.disabled = false;
-                        AlphaOS.Toast.warning('Black Swan', 'Simulazione completata - Rischio elevato');
-                    }, 2000);
+                    const input = document.getElementById('engine-input');
+                    const outputBox = document.getElementById('launch-output');
+                    if (!input || !outputBox) return;
+                    if (!input.value.trim()) {
+                        outputBox.style.display = 'block';
+                        outputBox.innerText = "Inserisci prima un'idea nel campo di ricerca.";
+                        outputBox.classList.add('show');
+                        return;
+                    }
+                    outputBox.style.display = 'block';
+                    outputBox.innerHTML = "Generazione scenario Cigno Nero...";
+                    outputBox.classList.add('show');
+
+                    const prompt = `Sei un analista di rischio specializzato in scenari "Cigno Nero" (Black Swan Events). Simula un evento catastrofico specifico e realistico per: "${input.value.trim()}".
+Struttura in: SCENARIO, IMPATTO, PERCHE' DISTRUGGE IL BUSINESS, MITIGAZIONE, AZIONE IMMEDIATA (3 passi).
+Massimo 350 parole. Rispondi in Italiano.`;
+
+                    const aiText = await this.callAI(prompt);
+                    if (!aiText && !AlphaOS.apiKey) return;
+                    outputBox.innerHTML = (aiText || 'Impossibile simulare. Verifica la chiave API in Impostazioni.').replace(/\n/g, '<br>');
+                    if (aiText) AlphaOS.Toast.warning('Black Swan', 'Simulazione completata - Rischio analizzato');
                 },
+
                 runMonteCarlo: function() {
-                    const input = document.getElementById('engine-input').value;
-                    if (!input || !input.trim()) { AlphaOS.Toast.warning('Monte Carlo', 'Inserisci un\'idea nel campo di ricerca'); return; }
-                    AlphaOS.MonteCarlo.run(input.trim());
+                    const input = document.getElementById('engine-input');
+                    if (!input || !input.value.trim()) {
+                        AlphaOS.Toast.warning('Monte Carlo', 'Inserisci un\'idea nel campo di ricerca');
+                        return;
+                    }
+                    const params = this.lastResult ? {
+                        risk: this.lastResult.risk,
+                        profit: this.lastResult.profit,
+                        valid: this.lastResult.valid
+                    } : null;
+                    AlphaOS.MonteCarlo.run(input.value.trim(), params);
                 }
             },
 
@@ -1908,16 +1999,18 @@
             },
 
             MonteCarlo: {
-                run: function(idea) {
+                run: function(idea, params) {
                     const output = document.getElementById('monte-carlo-output');
                     if (!output) return;
                     output.style.display = 'block'; output.innerHTML = '<div style="text-align:center;padding:20px;"><div style="font-family:\'Fira Code\',monospace;color:var(--brand-accent);">Esecuzione simulazione Monte Carlo...</div></div>'; output.classList.add('show');
                     setTimeout(() => {
-                        const N = 1000; const results = [];
+                        const N = 1000;
+                        const baseMean = params ? (params.valid + params.profit) / 2 : 50;
+                        const volatility = params ? 15 + (100 - params.risk) * 0.15 : 20;
+                        const results = [];
                         for (let i = 0; i < N; i++) {
-                            const base = 50 + (Math.random() - 0.5) * 60;
-                            const noise = (Math.random() - 0.5) * 25;
-                            results.push(Math.max(0, Math.min(100, base + noise)));
+                            const noise = (Math.random() - 0.5) * volatility * 2;
+                            results.push(Math.max(0, Math.min(100, baseMean + noise)));
                         }
                         results.sort((a, b) => a - b);
                         const mean = results.reduce((a, b) => a + b, 0) / N;
@@ -1931,6 +2024,9 @@
                         const isFavorable = mean > 50;
                         output.innerHTML = `
                             <div style="margin-bottom:16px;"><strong>Risultati Monte Carlo (${N.toLocaleString()} scenari)</strong></div>
+                            <div style="margin-bottom:12px;padding:10px;background:rgba(14,165,233,0.1);border:1px solid var(--brand-accent);border-radius:8px;font-size:0.85rem;color:var(--text-secondary);">
+                                Parametri base: Media <strong>${baseMean.toFixed(1)}%</strong> · Volatilità <strong>${volatility.toFixed(1)}</strong>${params ? ` · Rischio AI: ${params.risk}%` : ''}
+                            </div>
                             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;">
                                 <div style="background:var(--bg-surface);padding:12px;border-radius:8px;text-align:center;">
                                     <div style="font-size:0.7rem;color:var(--text-tertiary);text-transform:uppercase;">Media</div>
