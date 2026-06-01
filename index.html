@@ -8,10 +8,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     <script>
         window.addEventListener('error', function(e) {
             if (e.message && e.message.includes('Script error')) { e.preventDefault(); return true; }
@@ -833,48 +832,6 @@
                         </div>
                     </div>
                 </section>
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-                <script>
-                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-                let pdfDoc = null, pageNum = 1, pageRendering = false, pageNumPending = null;
-                const canvas = document.getElementById('pdf-canvas');
-                const ctx = canvas.getContext('2d');
-
-                function renderPage(num) {
-                    pageRendering = true;
-                    pdfDoc.getPage(num).then(page => {
-                        const viewport = page.getViewport({ scale: 1.5 });
-                        canvas.height = viewport.height;
-                        canvas.width = viewport.width;
-                        const renderContext = { canvasContext: ctx, viewport: viewport, background: 'transparent' };
-                        const renderTask = page.render(renderContext);
-                        return renderTask.promise;
-                    }).then(() => {
-                        pageRendering = false;
-                        document.getElementById('pdf-page-info').textContent = 'Pagina ' + num + ' / ' + pdfDoc.numPages;
-                        document.getElementById('pdf-prev').style.opacity = num <= 1 ? '0.5' : '1';
-                        document.getElementById('pdf-next').style.opacity = num >= pdfDoc.numPages ? '0.5' : '1';
-                        if (pageNumPending !== null) { renderPage(pageNumPending); pageNumPending = null; }
-                    });
-                }
-
-                function queueRenderPage(num) {
-                    if (pageRendering) { pageNumPending = num; return; }
-                    pageNum = num;
-                    renderPage(num);
-                }
-
-                document.getElementById('pdf-prev').onclick = () => { if (pageNum > 1) queueRenderPage(pageNum - 1); };
-                document.getElementById('pdf-next').onclick = () => { if (pdfDoc && pageNum < pdfDoc.numPages) queueRenderPage(pageNum + 1); };
-
-                pdfjsLib.getDocument('relazione-stage.pdf').promise.then(pdf => {
-                    pdfDoc = pdf;
-                    canvas.style.display = 'block';
-                    renderPage(1);
-                }).catch(() => {
-                    document.getElementById('pdf-viewer').innerHTML = '<p style="color: var(--semantic-danger); padding: 40px; font-family: Fira Code, monospace;">Errore caricamento PDF</p>';
-                });
-                </script>
 <section id="history" class="view">
                     <div class="analyzer-header"><h2>Cronologia Analisi</h2><p>Storico delle analisi salvate localmente. I dati rimangono sul tuo computer.</p>
                         <div style="display: flex; gap: 12px; margin-top: 16px;">
@@ -999,6 +956,9 @@
             </div>
         </div>
     </div>
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous"></script>
     <script>
         window.AlphaOS = {};
             AlphaOS = {
@@ -1335,6 +1295,7 @@
                     if (viewId === 'timeline') AlphaOS.TrendAnalysis.init();
                     if (viewId === 'advisor' || viewId === 'engine') AlphaOS.NeuralNet.activate();
                     if (viewId === 'about') { const v = document.getElementById('pitch-video'); if (v) { v.currentTime = 0; v.play().catch(() => {}); } }
+                    if (viewId === 'technical-report') AlphaOS.PDFViewer.init();
                     document.querySelectorAll('.bn-item').forEach(b => b.classList.remove('active'));
                     const matched = document.querySelector(`.bn-item[data-target="${viewId}"]`);
                     if (matched) matched.classList.add('active');
@@ -1569,6 +1530,62 @@
                         doc.save('Predictive_Analytics_Report.pdf');
                         AlphaOS.Toast.success('PDF', 'Report esportato con successo');
                     } catch (e) { AlphaOS.Toast.error('PDF', 'Errore durante l\'export'); }
+                }
+            },
+
+            PDFViewer: {
+                init: function() {
+                    if (this._loaded) return;
+                    this._loaded = true;
+                    const container = document.getElementById('pdf-viewer');
+                    if (!container) return;
+                    container.innerHTML = '<p style="color: var(--text-tertiary); font-family: Fira Code, monospace; padding: 40px;">Caricamento PDF.js...</p>';
+                    const script = document.createElement('script');
+                    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+                    script.onload = () => {
+                        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                        let pdfDoc = null, pageNum = 1, pageRendering = false, pageNumPending = null;
+                        const canvas = document.getElementById('pdf-canvas');
+                        if (!canvas) return;
+                        const ctx = canvas.getContext('2d');
+                        function renderPage(num) {
+                            pageRendering = true;
+                            pdfDoc.getPage(num).then(page => {
+                                const viewport = page.getViewport({ scale: 1.5 });
+                                canvas.height = viewport.height;
+                                canvas.width = viewport.width;
+                                const renderContext = { canvasContext: ctx, viewport: viewport, background: 'transparent' };
+                                return page.render(renderContext).promise;
+                            }).then(() => {
+                                pageRendering = false;
+                                const info = document.getElementById('pdf-page-info');
+                                if (info) info.textContent = 'Pagina ' + num + ' / ' + pdfDoc.numPages;
+                                const prev = document.getElementById('pdf-prev');
+                                if (prev) prev.style.opacity = num <= 1 ? '0.5' : '1';
+                                const next = document.getElementById('pdf-next');
+                                if (next) next.style.opacity = num >= pdfDoc.numPages ? '0.5' : '1';
+                                if (pageNumPending !== null) { renderPage(pageNumPending); pageNumPending = null; }
+                            });
+                        }
+                        function queueRenderPage(num) {
+                            if (pageRendering) { pageNumPending = num; return; }
+                            pageNum = num;
+                            renderPage(num);
+                        }
+                        document.getElementById('pdf-prev').onclick = () => { if (pageNum > 1) queueRenderPage(pageNum - 1); };
+                        document.getElementById('pdf-next').onclick = () => { if (pdfDoc && pageNum < pdfDoc.numPages) queueRenderPage(pageNum + 1); };
+                        pdfjsLib.getDocument('relazione-stage.pdf').promise.then(pdf => {
+                            pdfDoc = pdf;
+                            canvas.style.display = 'block';
+                            renderPage(1);
+                        }).catch(() => {
+                            container.innerHTML = '<p style="color: var(--semantic-danger); padding: 40px; font-family: Fira Code, monospace;">Errore caricamento PDF</p>';
+                        });
+                    };
+                    script.onerror = () => {
+                        container.innerHTML = '<p style="color: var(--semantic-danger); padding: 40px; font-family: Fira Code, monospace;">Errore caricamento PDF.js. Disabilita Brave Shields per questo sito o usa un altro browser.</p>';
+                    };
+                    document.body.appendChild(script);
                 }
             },
 
@@ -2267,7 +2284,7 @@ Massimo 350 parole. Rispondi in Italiano.`;
                 pointsMaterial: null,
                 initThreeJSGlobe: function() {
                     try {
-                        if (typeof THREE === 'undefined') return;
+                        if (typeof THREE === 'undefined') { setTimeout(() => AlphaOS.Graphics.initThreeJSGlobe(), 2000); return; }
                         const container = document.getElementById('three-globe'); if (!container) return;
                         const scene = new THREE.Scene();
                         const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
