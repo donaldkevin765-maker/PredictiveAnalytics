@@ -551,6 +551,20 @@
             <div class="loader-line"></div>
         </div>
     </div>
+    <noscript><style>#boot-gateway{display:none!important}#app-layout{display:block!important;opacity:1!important}</style></noscript>
+    <script>
+        setTimeout(function(){
+            var bg = document.getElementById('boot-gateway');
+            if (bg && bg.style.display !== 'none') {
+                bg.style.opacity = '0';
+                setTimeout(function(){
+                    bg.style.display = 'none';
+                    var app = document.getElementById('app-layout');
+                    if (app) app.classList.add('visible');
+                }, 600);
+            }
+        }, 5000);
+    </script>
     <div id="reconfig-overlay">
         <div class="terminal-box">
             <button onclick="document.getElementById('reconfig-overlay').style.display='none'" style="position: absolute; top: 15px; right: 20px; background: transparent; border: none; color: var(--text-tertiary); font-size: 1.5rem; cursor: pointer;">X</button>
