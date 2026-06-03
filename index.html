@@ -39,7 +39,6 @@
         [data-theme="light"] .css-earth { filter: invert(0) opacity(0.6); }
         [data-theme="light"] .market-ticker { background: rgba(255,255,255,0.95); border-top-color: rgba(0,0,0,0.1); }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background-color: var(--bg-base); color: var(--text-secondary); font-family: 'Inter', sans-serif; overflow-x: hidden; -webkit-font-smoothing: antialiased; transition: background-color 0.5s cubic-bezier(0.23, 1, 0.32, 1), color 0.3s ease; }
         #particle-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; }
         .bg-mesh { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; overflow: hidden; background: #000; }
@@ -127,8 +126,7 @@
         .loc-popup-content strong { color: var(--text-primary); }
         .modules-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; border-top: 1px solid var(--border-light); padding-top: 40px; }
         .module-card { padding: 30px 24px; cursor: pointer; transition: var(--transition-smooth); border: 1px solid var(--border-light); border-radius: var(--radius-md); background: var(--bg-surface); backdrop-filter: blur(24px); }
-        .module-card:hover { border-color: var(--brand-accent); transform: translateY(-3px); box-shadow: 0 8px 30px rgba(14,165,233,0.1); }
-        .module-card:hover { border-color: var(--brand-accent); background: var(--bg-surface-hover); transform: translateY(-3px); }
+        .module-card:hover { border-color: var(--brand-accent); background: var(--bg-surface-hover); transform: translateY(-3px); box-shadow: 0 8px 30px rgba(14,165,233,0.1); }
         .module-card h3 { font-size: 1.2rem; color: var(--text-primary); margin-bottom: 12px; font-weight: 600; }
         .module-card p { font-size: 0.95rem; color: var(--text-tertiary); line-height: 1.5; }
         .ai-btn { background: linear-gradient(135deg, var(--brand-accent), #3b82f6); color: #fff !important; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: none; border-radius: var(--radius-sm); padding: 16px 24px; font-weight: 600; cursor: pointer; transition: var(--transition-smooth); font-family: 'Inter', sans-serif; }
@@ -977,6 +975,7 @@
         window.AlphaOS = {};
             AlphaOS = {
                 apiKey: "", apiKeyOpenAI: "", apiKeyAnthropic: "", businessContext: "business/attivita", locationContext: "globale",
+                escapeHtml: function(str) { var d = document.createElement('div'); d.textContent = str; return d.innerHTML; },
                 initMobileNav: function() {
                     document.querySelectorAll('.bn-item[data-target]').forEach(item => {
                         item.addEventListener('click', function() {
@@ -1069,6 +1068,7 @@
                     );
                     return results.map(r => r.status === 'fulfilled' ? r.value : { provider: '?', name: '?', text: null, error: r.reason?.message || 'Failed' });
                 }
+            },
 
             I18N: {
                 current: 'it',
@@ -2164,7 +2164,7 @@ Massimo 350 parole. Rispondi in Italiano.`;
                         if (res.ok) {
                             const cloud = await res.json();
                             if (cloud.length > 0) {
-                                localStorage.setItem('alphaos-history', JSON.stringify(cloud));
+                                try { localStorage.setItem('alphaos-history', JSON.stringify(cloud)); } catch(e) {}
                                 this.render();
                             }
                         }
@@ -2197,7 +2197,7 @@ Massimo 350 parole. Rispondi in Italiano.`;
                                 <span class="history-card-date">${h.date}</span>
                                 <span style="font-family:'Fira Code',monospace;font-size:0.85rem;color:${h.risk > 50 ? 'var(--semantic-danger)' : 'var(--semantic-success)'};">Rischio: ${h.risk}%</span>
                             </div>
-                            <div class="history-card-title">${h.title}</div>
+                            <div class="history-card-title">${AlphaOS.escapeHtml(h.title || '')}</div>
                             <div class="history-card-stats">
                                 <span>📈 Profitto: ${h.profit}%</span>
                                 <span>✅ Validita: ${h.valid}%</span>
@@ -2214,8 +2214,8 @@ Massimo 350 parole. Rispondi in Italiano.`;
                     document.getElementById('engine-input').value = item.title;
                     setTimeout(() => {
                         AlphaOS.Engine.updateRadar(item.risk, item.profit, item.valid);
-                        document.getElementById('list-pros').innerHTML = item.pros.map(p => `<li>${p}</li>`).join('');
-                        document.getElementById('list-cons').innerHTML = item.cons.map(c => `<li>${c}</li>`).join('');
+                        document.getElementById('list-pros').innerHTML = item.pros.map(p => '<li>' + AlphaOS.escapeHtml(p) + '</li>').join('');
+                        document.getElementById('list-cons').innerHTML = item.cons.map(c => '<li>' + AlphaOS.escapeHtml(c) + '</li>').join('');
                         document.getElementById('analysis-results').style.display = 'grid';
                         AlphaOS.Toast.info('Cronologia', 'Analisi caricata dalla cronologia');
                     }, 300);
