@@ -563,7 +563,7 @@
                     if (app) app.classList.add('visible');
                 }, 600);
             }
-        }, 5000);
+        }, 3000);
     </script>
     <div id="reconfig-overlay">
         <div class="terminal-box">
@@ -1083,7 +1083,7 @@
                 init: function() {
                     this.canvas = document.getElementById('neural-canvas');
                     if (!this.canvas) return;
-                    this.ctx = this.canvas.getContext('2d');
+                    try { this.ctx = this.canvas.getContext('2d'); } catch(e) { return; }
                     this.resize();
                     window.addEventListener('resize', () => this.resize());
                     this.createNodes(80);
@@ -1124,7 +1124,7 @@
                 init: function() {
                     this.canvas = document.getElementById('particle-canvas');
                     if (!this.canvas) return;
-                    this.ctx = this.canvas.getContext('2d');
+                    try { this.ctx = this.canvas.getContext('2d'); } catch(e) { return; }
                     this.resize();
                     window.addEventListener('resize', () => this.resize());
                     document.addEventListener('mousemove', (e) => { this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
@@ -2137,13 +2137,13 @@ Massimo 350 parole. Rispondi in Italiano.`;
             Theme: {
                 current: 'dark',
                 init: function() {
-                    this.current = localStorage.getItem('alphaos-theme') || 'dark';
+                    try { this.current = localStorage.getItem('alphaos-theme') || 'dark'; } catch(e) { this.current = 'dark'; }
                     this.apply(this.current);
                 },
                 toggle: function() {
                     this.current = this.current === 'dark' ? 'light' : 'dark';
                     this.apply(this.current);
-                    localStorage.setItem('alphaos-theme', this.current);
+                    try { localStorage.setItem('alphaos-theme', this.current); } catch(e) {}
                 },
                 apply: function(theme) {
                     document.documentElement.setAttribute('data-theme', theme);
@@ -2171,10 +2171,11 @@ Massimo 350 parole. Rispondi in Italiano.`;
                     } catch(e) { /* fallback to localStorage */ }
                 },
                 save: function(data) {
-                    const history = JSON.parse(localStorage.getItem('alphaos-history') || '[]');
+                    let history = [];
+                    try { history = JSON.parse(localStorage.getItem('alphaos-history') || '[]'); } catch(e) { history = []; }
                     const entry = { id: Date.now(), date: new Date().toLocaleString('it-IT'), ...data };
                     history.unshift(entry);
-                    localStorage.setItem('alphaos-history', JSON.stringify(history.slice(0, 50)));
+                    try { localStorage.setItem('alphaos-history', JSON.stringify(history.slice(0, 50))); } catch(e) {}
                     fetch(AlphaOS.supabaseUrl + '/rest/v1/analyses', {
                         method: 'POST', headers: this.supabaseHeaders(),
                         body: JSON.stringify({ title: data.title, risk: data.risk, profit: data.profit, valid: data.valid, pros: JSON.stringify(data.pros || []), cons: JSON.stringify(data.cons || []), date: entry.date })
@@ -2184,7 +2185,8 @@ Massimo 350 parole. Rispondi in Italiano.`;
                 render: function() {
                     const container = document.getElementById('history-list');
                     if (!container) return;
-                    const history = JSON.parse(localStorage.getItem('alphaos-history') || '[]');
+                    let history = [];
+                    try { history = JSON.parse(localStorage.getItem('alphaos-history') || '[]'); } catch(e) { history = []; }
                     if (history.length === 0) {
                         container.innerHTML = '<div style="text-align:center;padding:60px;color:var(--text-tertiary);font-family:\'Fira Code\',monospace;">Nessuna analisi salvata.<br>Esegui un\'analisi per vederla qui.</div>';
                         return;
@@ -2204,7 +2206,8 @@ Massimo 350 parole. Rispondi in Italiano.`;
                     `).join('');
                 },
                 detail: function(id) {
-                    const history = JSON.parse(localStorage.getItem('alphaos-history') || '[]');
+                    let history = [];
+                    try { history = JSON.parse(localStorage.getItem('alphaos-history') || '[]'); } catch(e) { history = []; }
                     const item = history.find(h => h.id === id);
                     if (!item) return;
                     AlphaOS.UI.switchView('engine');
@@ -2219,7 +2222,7 @@ Massimo 350 parole. Rispondi in Italiano.`;
                 },
                 clear: function() {
                     if (confirm('Cancellare tutta la cronologia delle analisi?')) {
-                        localStorage.removeItem('alphaos-history');
+                        try { localStorage.removeItem('alphaos-history'); } catch(e) {}
                         fetch(AlphaOS.supabaseUrl + '/rest/v1/analyses', {
                             method: 'DELETE', headers: this.supabaseHeaders()
                         }).catch(() => {});
@@ -2329,40 +2332,42 @@ Massimo 350 parole. Rispondi in Italiano.`;
                     this.apiKey = localStorage.getItem('alphaos-apikey') || '';
                     this.apiKeyOpenAI = localStorage.getItem('alphaos-apikey-openai') || '';
                     this.apiKeyAnthropic = localStorage.getItem('alphaos-apikey-anthropic') || '';
-                    const geminiField = document.getElementById('api-key-input');
-                    if (geminiField) geminiField.value = this.apiKey;
-                    const openaiField = document.getElementById('api-key-openai');
-                    if (openaiField) openaiField.value = this.apiKeyOpenAI;
-                    const anthropicField = document.getElementById('api-key-anthropic');
-                    if (anthropicField) anthropicField.value = this.apiKeyAnthropic;
-                    this.I18N.setLanguage('it');
-                    this.CommandPalette.init();
-                    this.UI.init();
-                    this.initMobileNav();
-                    this.NeuralNet.init();
-                    this.Particles.init();
-                    this.Voice.init();
-                    this.Theme.init();
-                    this.History.init();
-                    this.Market.initTicker();
+                } catch(e) {}
+                try { const g = document.getElementById('api-key-input'); if (g) g.value = this.apiKey; } catch(e) {}
+                try { const o = document.getElementById('api-key-openai'); if (o) o.value = this.apiKeyOpenAI; } catch(e) {}
+                try { const a = document.getElementById('api-key-anthropic'); if (a) a.value = this.apiKeyAnthropic; } catch(e) {}
+                try { this.I18N.setLanguage('it'); } catch(e) {}
+                try { this.CommandPalette.init(); } catch(e) {}
+                try { this.UI.init(); } catch(e) {}
+                try { this.initMobileNav(); } catch(e) {}
+                try { this.NeuralNet.init(); } catch(e) {}
+                try { this.Particles.init(); } catch(e) {}
+                try { this.Voice.init(); } catch(e) {}
+                try { this.Theme.init(); } catch(e) {}
+                try { this.History.init(); } catch(e) {}
+                try { this.Market.initTicker(); } catch(e) {}
+                setTimeout(() => {
+                    const bootGateway = document.getElementById('boot-gateway');
+                    if (bootGateway) bootGateway.style.opacity = '0';
                     setTimeout(() => {
-                        const bootGateway = document.getElementById('boot-gateway');
-                        if (bootGateway) bootGateway.style.opacity = '0';
-                        setTimeout(() => {
-                            if (bootGateway) bootGateway.style.display = 'none';
-                            const appLayout = document.getElementById('app-layout');
-                            if (appLayout) appLayout.classList.add('visible');
-                            this.Graphics.initThreeJSGlobe();
-                            AlphaOS.Toast.success('Sistema', 'Predictive Analytics avviato con successo');
-                        }, 600);
-                    }, 1500);
-                } catch (e) { }
-                    setTimeout(() => {
-                        const bootGateway = document.getElementById('boot-gateway');
-                        if (bootGateway) { bootGateway.style.opacity = '0'; setTimeout(() => { bootGateway.style.display = 'none'; }, 600); }
+                        if (bootGateway) bootGateway.style.display = 'none';
                         const appLayout = document.getElementById('app-layout');
                         if (appLayout) appLayout.classList.add('visible');
-                    }, 5000);
+                        this.Graphics.initThreeJSGlobe();
+                        AlphaOS.Toast.success('Sistema', 'Predictive Analytics avviato con successo');
+                    }, 600);
+                }, 1500);
+                setTimeout(function(){
+                    var bg = document.getElementById('boot-gateway');
+                    if (bg && bg.style.display !== 'none') {
+                        bg.style.opacity = '0';
+                        setTimeout(function(){
+                            bg.style.display = 'none';
+                            var app = document.getElementById('app-layout');
+                            if (app) app.classList.add('visible');
+                        }, 600);
+                    }
+                }, 3000);
             }
         };
 
