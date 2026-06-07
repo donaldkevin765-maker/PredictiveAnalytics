@@ -1,3 +1,4 @@
+from __future__ import annotations
 from pathlib import Path
 from loguru import logger
 from app.config import settings
@@ -11,12 +12,11 @@ class TextToSpeechService:
         out = Path(output_path)
         out.parent.mkdir(parents=True, exist_ok=True)
 
-        if engine == "gtts":
-            return await self._gtts(text, str(out), lang)
+        if engine == "coqui":
+            return await self._coqui(text, str(out), lang)
         elif engine == "pyttsx3":
             return self._pyttsx3(text, str(out))
         else:
-            logger.warning(f"TTS engine '{engine}' sconosciuto, uso gTTS")
             return await self._gtts(text, str(out), lang)
 
     async def _gtts(self, text: str, output_path: str, lang: str) -> str:
@@ -24,11 +24,32 @@ class TextToSpeechService:
             from gtts import gTTS
             tts = gTTS(text=text, lang=lang, slow=False)
             tts.save(output_path)
-            logger.info(f"Audio generato con gTTS: {output_path}")
+            logger.info(f"Audio gTTS: {output_path}")
             return output_path
         except Exception as e:
             logger.error(f"Errore gTTS: {e}")
             raise
+
+    async def _coqui(self, text: str, output_path: str, lang: str) -> str:
+        try:
+            from TTS.api import TTS as CoquiTTS
+
+            model_name = "tts_models/multilingual/multi-dataset/xtts_v2"
+            tts = CoquiTTS(model_name)
+            tts.tts_to_file(
+                text=text,
+                file_path=output_path,
+                language=lang,
+                speed=settings.tts_speed,
+            )
+            logger.info(f"Audio Coqui TTS: {output_path}")
+            return output_path
+        except ImportError:
+            logger.warning("Coqui TTS non installato, fallback a gTTS")
+            return await self._gtts(text, output_path, lang)
+        except Exception as e:
+            logger.error(f"Errore Coqui TTS: {e}")
+            return await self._gtts(text, output_path, lang)
 
     def _pyttsx3(self, text: str, output_path: str) -> str:
         try:
@@ -36,7 +57,7 @@ class TextToSpeechService:
             engine = pyttsx3.init()
             engine.save_to_file(text, output_path)
             engine.runAndWait()
-            logger.info(f"Audio generato con pyttsx3: {output_path}")
+            logger.info(f"Audio pyttsx3: {output_path}")
             return output_path
         except Exception as e:
             logger.error(f"Errore pyttsx3: {e}")

@@ -29,6 +29,10 @@ async def get_db():
             await session.close()
 
 
+def get_sync_session() -> AsyncSession:
+    return async_session()
+
+
 async def init_db():
     async with engine.begin() as conn:
         from app.models import project, video, scene

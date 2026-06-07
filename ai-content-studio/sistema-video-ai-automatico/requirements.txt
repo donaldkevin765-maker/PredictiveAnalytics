@@ -8,27 +8,30 @@ pydantic-settings==2.7.0
 sqlalchemy==2.0.36
 alembic==1.14.0
 aiosqlite==0.20.0
+asyncpg==0.30.0
 
 # Task queue
 celery==5.4.0
 redis==5.2.1
 
-# TTS gratuito offline
+# TTS gratuito
 gTTS==2.5.4
 pyttsx3==2.98
 
-# Generazione immagini locale gratuita (opzionale - richiede GPU)
-# torch
-# diffusers
-# transformers
-
-# Editting video
+# Video/Image
 moviepy==2.1.1
 Pillow==11.1.0
 opencv-python-headless==4.10.0.84
 
 # Sottotitoli
 srt==3.5.3
+
+# Auth
+PyJWT==2.9.0
+cryptography==43.0.3
+
+# Dashboard Celery
+flower==2.0.1
 
 # Utility
 httpx==0.28.1
@@ -39,4 +42,3 @@ loguru==0.7.3
 # Testing
 pytest==8.3.4
 pytest-asyncio==0.24.0
-httpx==0.28.1

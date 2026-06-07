@@ -1,5 +1,5 @@
+from __future__ import annotations
 import json
-import os
 import httpx
 from loguru import logger
 from app.config import settings
@@ -7,119 +7,144 @@ from app.config import settings
 
 class ScriptGenerator:
     def __init__(self):
-        self.gemini_key = os.getenv("GEMINI_API_KEY", "")
-        self.openai_key = os.getenv("OPENAI_API_KEY", "")
-        self.anthropic_key = os.getenv("ANTHROPIC_API_KEY", "")
-
-    def _get_enabled_providers(self):
-        providers = []
-        if self.gemini_key:
-            providers.append("gemini")
-        if self.openai_key:
-            providers.append("openai")
-        if self.anthropic_key:
-            providers.append("anthropic")
-        return providers
+        self.ollama_url = f"{settings.ollama_base_url}/api/generate"
+        self.model = settings.ollama_model
 
     async def generate(self, topic: str, duration_sec: int = 60, style: str = "informativo") -> dict:
-        logger.info(f"Generazione script AI: topic={topic}, durata={duration_sec}s, stile={style}")
+        logger.info(f"Generazione script: topic={topic}, durata={duration_sec}s, stile={style}")
 
-        enabled = self._get_enabled_providers()
-        if not enabled:
-            logger.warning("Nessuna chiave AI configurata, uso template locale")
-            from app.services.script_generator_templates import ScriptGenerator as Fallback
-            return Fallback().generate(topic, duration_sec, style)
-
-        prompt = (
-            f"Sei un creative director e video scriptwriter professionista. "
-            f"Genera uno script video completo per il tema: \"{topic}\".\n\n"
-            f"Durata: circa {duration_sec} secondi.\n"
-            f"Stile: {style}.\n\n"
-            f"Rispondi SOLO con un JSON valido (senza markdown):\n"
-            f"{{\n"
-            f'  "full_script": "Testo completo dello script unendo tutte le scene",\n'
-            f'  "scenes": [\n'
-            f"    {{\n"
-            f'      "content": "Testo voiceover per questa scena",\n'
-            f'      "image_prompt": "Descrizione per generare immagine di sfondo",\n'
-            f'      "subtitle_text": "Testo sottotitoli per questa scena",\n'
-            f'      "duration": 10.0\n'
-            f"    }}\n"
-            f"  ]\n"
-            f"}}\n\n"
-            f"REQUISITI:\n"
-            f"- Crea tra 4 e 8 scene\n"
-            f"- La durata totale deve essere circa {duration_sec} secondi\n"
-            f"- Il content deve essere testo voiceover naturale\n"
-            f"- L'image_prompt deve descrivere un'immagine/visual per accompagnare la scena\n"
-            f"- Sii creativo e professionale\n"
-            f"- Rispondi in Italiano"
-        )
-
-        for provider in enabled:
+        if settings.ollama_base_url:
             try:
-                result = await self._call_provider(provider, prompt)
-                if result:
-                    parsed = self._parse_response(result)
-                    if parsed:
-                        return parsed
+                return await self._generate_with_llm(topic, duration_sec, style)
             except Exception as e:
-                logger.warning(f"Provider {provider} fallito: {e}")
+                logger.warning(f"LLM non disponibile, uso fallback: {e}")
 
-        logger.warning("Tutti i provider AI falliti, uso template locale")
-        from app.services.script_generator_templates import ScriptGenerator as Fallback
-        return Fallback().generate(topic, duration_sec, style)
+        return self._generate_template(topic, duration_sec, style)
 
-    async def _call_provider(self, provider: str, prompt: str) -> str | None:
+    async def _generate_with_llm(self, topic: str, duration_sec: int, style: str) -> dict:
+        num_scenes = max(2, min(8, duration_sec // 10))
+
+        prompt = f"""Sei un scriptwriter professionista per video brevi. Genera uno script per un video di {duration_sec} secondi sul tema: "{topic}".
+Stile: {style}
+Numero di scene: {num_scenes}
+
+Rispondi SOLO con JSON valido nel formato:
+{{
+  "scenes": [
+    {{"content": "testo narrato della scena", "image_prompt": "descrizione per generare immagine", "duration": 5.0}},
+    ...
+  ]
+}}
+
+Ogni scena deve avere un contenuto di circa 2-3 frasi. Le image_prompt devono essere descrittive e visive.
+La durata totale di tutte le scene deve essere circa {duration_sec} secondi."""
+
         async with httpx.AsyncClient(timeout=60.0) as client:
-            if provider == "gemini":
-                resp = await client.post(
-                    f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-exp-03-25:generateContent"
-                    f"?key={self.gemini_key}",
-                    json={"contents": [{"parts": [{"text": prompt}]}]},
-                )
-                if resp.is_success:
-                    data = resp.json()
-                    return data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text")
+            resp = await client.post(
+                self.ollama_url,
+                json={"model": self.model, "prompt": prompt, "stream": False, "format": "json"},
+            )
+            resp.raise_for_status()
 
-            elif provider == "openai":
-                resp = await client.post(
-                    "https://api.openai.com/v1/chat/completions",
-                    headers={"Authorization": f"Bearer {self.openai_key}"},
-                    json={"model": "gpt-4o", "messages": [{"role": "user", "content": prompt}], "temperature": 0.7},
-                )
-                if resp.is_success:
-                    data = resp.json()
-                    return data.get("choices", [{}])[0].get("message", {}).get("content")
+        raw = resp.json().get("response", "")
+        data = json.loads(raw)
 
-            elif provider == "anthropic":
-                resp = await client.post(
-                    "https://api.anthropic.com/v1/messages",
-                    headers={"x-api-key": self.anthropic_key, "anthropic-version": "2023-06-01"},
-                    json={"model": "claude-3-opus-20240229", "max_tokens": 4096,
-                          "messages": [{"role": "user", "content": prompt}]},
-                )
-                if resp.is_success:
-                    data = resp.json()
-                    return data.get("content", [{}])[0].get("text")
-        return None
+        scenes = []
+        for i, s in enumerate(data.get("scenes", [])):
+            scenes.append({
+                "content": s.get("content", f"Scena {i+1} sul tema {topic}"),
+                "image_prompt": s.get("image_prompt", topic),
+                "subtitle_text": s.get("content", f"Scena {i+1}"),
+                "duration": float(s.get("duration", duration_sec / num_scenes)),
+            })
 
-    def _parse_response(self, text: str) -> dict | None:
-        try:
-            clean = text.replace("```json", "").replace("```", "").strip()
-            start = clean.find("{")
-            end = clean.rfind("}")
-            if start == -1 or end == -1:
-                return None
-            parsed = json.loads(clean[start:end + 1])
-            if "scenes" in parsed and isinstance(parsed["scenes"], list) and len(parsed["scenes"]) > 0:
-                for s in parsed["scenes"]:
-                    s.setdefault("subtitle_text", s.get("content", ""))
-                    s.setdefault("image_prompt", "")
-                    s.setdefault("duration", 10.0)
-                if "full_script" not in parsed:
-                    parsed["full_script"] = "\n\n".join(s["content"] for s in parsed["scenes"])
-                return parsed
-        except Exception as e:
-            logger.warning(f"Errore parsing risposta AI: {e}")
-        return None
+        full_script = "\n\n".join(s["content"] for s in scenes)
+        return {"full_script": full_script, "scenes": scenes}
+
+    def _generate_template(self, topic: str, duration_sec: int, style: str) -> dict:
+        import random
+        rng = random.Random(settings.script_seed + hash(topic) + duration_sec)
+
+        templates = {
+            "informativo": {
+                "intro": f"Oggi parleremo di {topic}.",
+                "patterns": [
+                    f"Ecco cosa devi sapere su {topic}: {{}}",
+                    f"Un aspetto fondamentale di {topic} è {{}}",
+                    "Molte persone non sanno che {}",
+                    "Per approfondire: {}",
+                ],
+                "outro": f"Grazie per aver guardato questo video su {topic}. Iscriviti per altri contenuti!",
+            },
+            "divertente": {
+                "intro": f"Pronto per qualcosa di assurdo su {topic}?",
+                "patterns": [
+                    "Immagina questo: {}",
+                    "Non ci crederai, ma {}",
+                    "Ok, questa è buona: {}",
+                    "E la ciliegina sulla torta? {}",
+                ],
+                "outro": f"Se hai riso, metti un like! Ci vediamo al prossimo video su {topic}.",
+            },
+            "didattico": {
+                "intro": f"In questo video imparerai i concetti fondamentali di {topic}.",
+                "patterns": [
+                    "Primo concetto: {}",
+                    "Passiamo al secondo punto: {}",
+                    "Ora vediamo come {} si collega al quadro generale",
+                    "Esempio pratico: {}",
+                ],
+                "outro": f"Ricapitolando, oggi hai imparato le basi di {topic}. Esercitati!",
+            },
+            "motivazionale": {
+                "intro": f"Oggi parliamo di {topic}. Un tema che può cambiare la tua vita.",
+                "patterns": [
+                    "Quando pensi a questo, ricordati che {}",
+                    "La verità è che {}. Sta a te decidere",
+                    "Non dimenticare mai: {}",
+                    "Ecco il punto cruciale: {}",
+                ],
+                "outro": f"Se questo video ti ha ispirato, condividilo. Vai e conquista!",
+            },
+            "serio": {
+                "intro": f"Benvenuto. Oggi affronteremo un tema importante: {topic}.",
+                "patterns": [
+                    "Analizziamo i dati: {}",
+                    "Le ricerche mostrano che {}",
+                    "Un punto critico: {}",
+                    "In conclusione, {}",
+                ],
+                "outro": f"Spero questo approfondimento ti sia stato utile. Ci vediamo al prossimo video.",
+            },
+        }
+
+        details_pool = [
+            "questo argomento sta rivoluzionando il modo in cui lavoriamo",
+            "i numeri parlano chiaro: la crescita è esponenziale",
+            "sempre più persone si stanno avvicinando a questo tema",
+            "le possibilità sono infinite se sai dove guardare",
+            "il futuro è già qui, sta a noi coglierne le opportunità",
+            "l'innovazione non si ferma mai",
+            "la conoscenza è il vero potere",
+            "ogni grande cambiamento inizia con una piccola idea",
+        ]
+
+        tmpl = templates.get(style, templates["informativo"])
+        num_scenes = max(2, min(8, duration_sec // 10))
+        scene_dur = round(duration_sec / num_scenes, 1)
+
+        selected = rng.sample(details_pool, min(len(details_pool), num_scenes))
+
+        scenes = []
+        for i, detail in enumerate(selected):
+            pattern = rng.choice(tmpl["patterns"])
+            content = pattern.format(detail)
+            scenes.append({
+                "content": content,
+                "image_prompt": f"{topic}, {detail[:60]}, stile professionale, illustration, 4k",
+                "subtitle_text": content,
+                "duration": scene_dur,
+            })
+
+        full_script = f"{tmpl['intro']}\n\n" + "\n\n".join(s["content"] for s in scenes) + f"\n\n{tmpl['outro']}"
+        return {"full_script": full_script, "scenes": scenes}

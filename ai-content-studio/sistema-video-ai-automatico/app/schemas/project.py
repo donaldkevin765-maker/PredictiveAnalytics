@@ -26,3 +26,13 @@ class ProjectResponse(BaseModel):
     updated_at: datetime.datetime
 
     model_config = {"from_attributes": True}
+
+
+class PaginatedProjectResponse(BaseModel):
+    items: list[ProjectResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+    has_next: bool
+    has_prev: bool

@@ -13,19 +13,33 @@ class Settings(BaseSettings):
 
     tts_engine: str = "gtts"
     tts_lang: str = "it"
+    tts_voice_id: str = ""
+    tts_speed: float = 1.0
 
     use_local_sd: bool = False
     sd_model_id: str = "stabilityai/stable-diffusion-2-1"
+    hf_api_token: str = ""
+
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_model: str = "llama3.2"
+    script_seed: int = 42
 
     video_width: int = 1920
     video_height: int = 1080
     video_fps: int = 30
     max_video_duration: int = 300
-    subtitle_font: str = "assets/fonts/NotoSans-Regular.ttf"
+    subtitle_font: str = ""  # se vuoto usa FONTS_DIR/NotoSans-Regular.ttf
 
     supabase_url: Optional[str] = None
     supabase_service_key: Optional[str] = None
+    supabase_anon_key: Optional[str] = None
+    supabase_jwt_secret: Optional[str] = None
     supabase_bucket: str = "videos"
+
+    webhook_url: Optional[str] = None
+    webhook_secret: str = ""
+
+    default_language: str = "it"
 
     output_dir: str = "./output"
     assets_dir: str = "./assets"
@@ -41,10 +55,9 @@ DATA_DIR = BASE_DIR / "data"
 OUTPUT_DIR = BASE_DIR / settings.output_dir
 ASSETS_DIR = BASE_DIR / settings.assets_dir
 FONTS_DIR = ASSETS_DIR / "fonts"
+AUDIO_DIR = OUTPUT_DIR / "audio"
+IMAGES_DIR = OUTPUT_DIR / "images"
+VIDEOS_DIR = OUTPUT_DIR / "videos"
 
-DATA_DIR.mkdir(exist_ok=True)
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-(OUTPUT_DIR / "videos").mkdir(exist_ok=True)
-(OUTPUT_DIR / "audio").mkdir(exist_ok=True)
-(OUTPUT_DIR / "images").mkdir(exist_ok=True)
-FONTS_DIR.mkdir(parents=True, exist_ok=True)
+for d in [DATA_DIR, OUTPUT_DIR, VIDEOS_DIR, AUDIO_DIR, IMAGES_DIR, FONTS_DIR]:
+    d.mkdir(parents=True, exist_ok=True)

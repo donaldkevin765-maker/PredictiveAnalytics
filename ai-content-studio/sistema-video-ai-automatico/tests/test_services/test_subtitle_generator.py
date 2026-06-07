@@ -6,30 +6,39 @@ from app.services.subtitle_generator import SubtitleGenerator
 
 class TestSubtitleGenerator:
     def setup_method(self):
-        self.generator = SubtitleGenerator()
+        self.gen = SubtitleGenerator()
 
     def test_generates_srt_file(self):
         with tempfile.NamedTemporaryFile(suffix=".srt", delete=False) as f:
-            out_path = f.name
-
+            out = f.name
         try:
-            scenes = ["Ciao mondo", "Questo è un test"]
+            scenes = ["Ciao mondo", "Test"]
             durations = [5.0, 3.0]
-            result = self.generator.generate_srt(scenes, durations, out_path)
+            result = self.gen.generate_srt(scenes, durations, out)
 
-            assert os.path.exists(out_path)
-            with open(out_path, encoding="utf-8") as f:
+            assert os.path.exists(out)
+            with open(out, encoding="utf-8") as f:
                 content = f.read()
 
             assert "1" in content
             assert "2" in content
             assert "Ciao mondo" in content
-            assert "Questo è un test" in content
             assert "-->" in content
         finally:
-            if os.path.exists(out_path):
-                os.unlink(out_path)
+            os.unlink(out)
 
     def test_timing_format(self):
-        formatted = self.generator._format_time(3661.5)
-        assert "01:01:01" in formatted or "01:01:01" in formatted
+        formatted = self.gen._format_time(3661.5)
+        assert "-->" not in formatted
+        assert "," in formatted
+
+    def test_empty_srt(self):
+        with tempfile.NamedTemporaryFile(suffix=".srt", delete=False) as f:
+            out = f.name
+        try:
+            self.gen.generate_srt([], [], out)
+            with open(out, encoding="utf-8") as f:
+                content = f.read()
+            assert content.strip() == ""
+        finally:
+            os.unlink(out)

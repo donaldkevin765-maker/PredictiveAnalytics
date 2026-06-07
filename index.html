@@ -2442,15 +2442,29 @@ Rispondi SOLO con un JSON valido (senza markdown):
                     this.appendMessage('user', text); inputEl.value = '';
                     AlphaOS.NeuralNet.activate();
                     const loadingId = this.appendMessage('ai', 'Elaborazione in corso...');
-                    setTimeout(() => {
-                        const responses = [
-                            `Analisi rapida per "${text}":\n\nLa prima impressione e che c'e potenziale ma serve cautela. I costi vanno sovrastimati almeno del 35% per evitare brutte sorprese.\n\nDomande chiave:\n1. Qual e il budget iniziale disponibile?\n2. Hai gia analizzato i competitor nella zona?\n3. La struttura GDPR e pronta?`,
-                            `Ricevuto. Ecco la mia valutazione:\n\nProbabilita di successo: 72%\n\nPunti di forza:\n• Mercato in crescita nel settore\n• Possibilita di monetizzazione dati\n• Costi contenuti con sovrastima\n\nDa monitorare:\n• Compliance normativa\n• Cash flow nei primi 6 mesi`,
-                            `OK, analizzo la situazione.\n\nIl mio consiglio e procedere ma con questi accorgimenti:\n\n1. Blindiamo i costi con buffer del 35%\n2. GDPR perfetto prima di lanciare\n3. TVCC a norma con cartellonistica\n4. Piano di monetizzazione ex-clienti pronto\n\nNon rifaremo il 4° anno, te lo garantisco.`
-                        ];
-                        this.updateMessage(loadingId, responses[Math.floor(Math.random() * responses.length)]);
-                        AlphaOS.Toast.success('AI', 'Risposta generata');
-                    }, 1500);
+                    try {
+                        const enabled = AlphaOS.API.getEnabledProviders();
+                        if (enabled.length === 0) {
+                            this.updateMessage(loadingId, '⚠️ Nessuna chiave API configurata. Vai in Impostazioni e aggiungi almeno una chiave (Gemini, OpenAI o Anthropic).');
+                            AlphaOS.Toast.warning('API mancante', 'Configura almeno una chiave API');
+                            return;
+                        }
+                        const prompt = (AlphaOS.systemPrompt || 'Sei un consulente strategico esperto.') +
+                            '\n\nDomanda utente: ' + text + '\n\nRispondi in modo diretto, professionale e utile. Massimo 300 parole.';
+                        const results = await AlphaOS.API.callEnsemble(prompt);
+                        const ok = results.filter(r => r.text && r.text.trim());
+                        if (ok.length === 0) {
+                            this.updateMessage(loadingId, '❌ Tutti i provider AI hanno fallito. Verifica le chiavi API in Impostazioni.');
+                            AlphaOS.Toast.error('AI Error', 'Tutti i provider hanno fallito');
+                            return;
+                        }
+                        const best = ok[0];
+                        this.updateMessage(loadingId, best.text);
+                        AlphaOS.Toast.success('AI', 'Risposta da ' + best.name);
+                    } catch (e) {
+                        this.updateMessage(loadingId, '❌ Errore: ' + (e.message || 'sconosciuto'));
+                        AlphaOS.Toast.error('Errore AI', e.message || 'Errore sconosciuto');
+                    }
                 },
                 appendMessage: function(role, text) {
                     const historyEl = document.getElementById('chat-history'); if (!historyEl) return null;
