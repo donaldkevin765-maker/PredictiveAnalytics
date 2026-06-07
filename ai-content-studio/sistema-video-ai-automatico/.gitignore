@@ -48,3 +48,4 @@ logs/
 # Celery
 celerybeat-schedule
 celerybeat.pid
+.vercel

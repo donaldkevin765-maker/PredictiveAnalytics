@@ -1,16 +1,9 @@
 {
-  "buildCommand": "pip install -r requirements.txt",
-  "outputDirectory": ".",
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "python",
   "rewrites": [
     { "source": "/(.*)", "destination": "/api/index.py" }
   ],
-  "functions": {
-    "api/index.py": {
-      "maxDuration": 60,
-      "memory": 1024
-    }
-  },
   "env": {
     "PYTHON_VERSION": "3.12"
   }

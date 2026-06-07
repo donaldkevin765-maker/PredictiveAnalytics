@@ -6,15 +6,19 @@ from app.config import settings
 
 
 def _resolve_db_url() -> str:
-    url = os.environ.get("DATABASE_URL") or os.environ.get("POSTGRES_URL") or settings.database_url
-    if url.startswith("postgres://"):
-        url = url.replace("postgres://", "postgresql+asyncpg://", 1)
-    elif url.startswith("postgresql://"):
-        url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
-    if "sslmode" not in url and "postgresql" in url:
-        sep = "&" if "?" in url else "?"
-        url = f"{url}{sep}sslmode=require"
-    return url
+    url = os.environ.get("DATABASE_URL") or os.environ.get("POSTGRES_URL") or os.environ.get("POSTGRES_PRISMA_URL")
+    if url:
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+        elif url.startswith("postgresql://") and "+asyncpg" not in url:
+            url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        if "sslmode" not in url and "ssl=" not in url:
+            sep = "&" if "?" in url else "?"
+            url = f"{url}{sep}sslmode=require"
+        return url
+    if os.environ.get("VERCEL") == "1":
+        return "postgresql+asyncpg://nowhere:nowhere@127.0.0.1:1/nowhere"
+    return settings.database_url
 
 
 def _build_engine_kwargs(url: str) -> dict:
@@ -58,9 +62,17 @@ def get_sync_session() -> AsyncSession:
 
 async def init_db():
     engine = get_engine()
-    async with engine.begin() as conn:
-        from app.models import project, video, scene
-        await conn.run_sync(Base.metadata.create_all)
+    try:
+        async with engine.begin() as conn:
+            from app.models import project, video, scene
+            await conn.run_sync(Base.metadata.create_all)
+        return True
+    except Exception as e:
+        if os.environ.get("VERCEL") == "1":
+            from loguru import logger
+            logger.warning(f"DB init skipped (no DATABASE_URL): {e}")
+            return False
+        raise
 
 
 class Base(DeclarativeBase):

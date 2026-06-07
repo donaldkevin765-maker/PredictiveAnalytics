@@ -13,8 +13,11 @@ from app.api.v1 import projects, videos
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Inizializzazione database...")
-    await init_db()
-    logger.info("Database pronto")
+    ok = await init_db()
+    if ok:
+        logger.info("Database pronto")
+    else:
+        logger.warning("Database non inizializzato (manca DATABASE_URL) - l'app funzionerà in modalità limitata")
     yield
     logger.info("Arresto")
 
@@ -40,7 +43,18 @@ app.include_router(videos.router, prefix="/api/v1/videos", tags=["videos"])
 
 @app.get("/")
 async def root():
-    return {"status": "ok", "app": "Sistema Video AI Automatico", "version": "0.1.0"}
+    return {
+        "status": "ok",
+        "app": "Sistema Video AI Automatico",
+        "version": "0.1.0",
+        "docs": "/docs",
+        "health": "/health",
+        "endpoints": {
+            "projects": "/api/v1/projects/",
+            "videos": "/api/v1/videos/",
+        },
+        "note": "Serverless: for persistent storage set DATABASE_URL env var (Postgres)",
+    }
 
 
 @app.get("/health")

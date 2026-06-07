@@ -137,8 +137,55 @@ git push -u origin main
 ```
 
 ### Vercel
-- Collega repo GitHub a [vercel.com](https://vercel.com)
-- Il workflow CI/CD fa deploy automatico su `main`
+
+#### Setup veloce (Dashboard)
+
+1. Vai su [vercel.com/new](https://vercel.com/new)
+2. **Import** del repo `PredictiveAnalytics`
+3. **Root Directory**: clicca "Edit" → seleziona `ai-content-studio/sistema-video-ai-automatico`
+4. **Framework Preset**: lascia "Other" (Python viene rilevato da `vercel.json`)
+5. Clicca **Deploy** — primo build ci mette 1-2 minuti
+
+#### Variabili ambiente (Project Settings → Environment Variables)
+
+| Chiave | Valore | Note |
+|---|---|---|
+| `DATABASE_URL` | `postgresql+asyncpg://...` | **Consigliato**: Vercel Postgres (gratis) o Neon/Supabase. Lascia vuoto per SQLite (non persistente!) |
+| `SUPABASE_URL` | `https://xxx.supabase.co` | Opzionale, per storage |
+| `SUPABASE_SERVICE_KEY` | `eyJ...` | Opzionale |
+| `SUPABASE_JWT_SECRET` | `super-secret-...` | Opzionale, per auth |
+| `HF_API_TOKEN` | `hf_...` | Opzionale, per generazione immagini |
+| `LOG_LEVEL` | `INFO` | |
+
+> ⚠️ **Limitazioni Vercel serverless**:
+> - **No Celery/Redis** → task di rendering eseguiti inline (entro 60s)
+> - **No FFmpeg/MoviePy** → la compilazione video finale richiede worker separato
+> - **Filesystem effimero** → usa Supabase Storage per i video finali
+> - **Database consigliato**: Vercel Postgres / Neon / Supabase (no SQLite)
+
+#### Setup Vercel Postgres (gratis)
+
+```bash
+# Dopo il primo deploy:
+vercel storage create postgres
+# Copia DATABASE_URL negli env variables
+# Re-deploy: vercel --prod
+```
+
+#### Deploy CLI (alternativa)
+
+```bash
+npm i -g vercel
+cd ai-content-studio/sistema-video-ai-automatico
+vercel login
+vercel --prod
+```
+
+#### URL risultante
+
+- API: `https://sistema-video-ai-automatico.vercel.app/api/v1/projects/`
+- Docs: `https://sistema-video-ai-automatico.vercel.app/docs`
+- Health: `https://sistema-video-ai-automatico.vercel.app/health`
 
 ### Supabase
 - Crea progetto su [supabase.com](https://supabase.com)

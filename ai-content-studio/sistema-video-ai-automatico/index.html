@@ -192,7 +192,7 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg-canvas)
         <div class="phead"><div class="ptitle">&#9881; Impostazioni</div><div class="pdesc">Configurazione backend e preferenze.</div></div>
         <div class="card">
           <div class="card-h">&#128279; Backend API</div>
-          <div class="row"><label>API URL</label><input type="text" id="api-url" placeholder="http://localhost:8000"></div>
+          <div class="row"><label>API URL</label><input type="text" id="api-url" placeholder="https://sistema-video-ai.vercel.app"></div>
           <div class="row"><label>Token JWT</label><input type="password" id="api-token" placeholder="Opzionale (se auth abilitata)"></div>
           <button class="btn btn-p" onclick="Studio.testConnection()">&#128269; Test Connessione</button>
           <div id="conn-result" class="mt-2" style="margin-top:12px"></div>
@@ -217,7 +217,7 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg-canvas)
 const Toast={_c:document.getElementById('toasts'),show:function(m,t){const e=document.createElement('div');e.className='toast '+(t||'');const i={s:'&#9989;',e:'&#10060;',w:'&#9888;'};e.innerHTML=(i[t]||'&#10003;')+' '+m;this._c.appendChild(e);setTimeout(()=>{e.classList.add('out');setTimeout(()=>e.remove(),300)},4000)},s:function(m){this.show(m,'s')},e:function(m){this.show(m,'e')},w:function(m){this.show(m,'w')}};
 
 const API={
-_url(){try{return localStorage.getItem('alphavideo-api-url')||'http://localhost:8000'}catch(e){return'http://localhost:8000'}},
+_url(){try{return localStorage.getItem('alphavideo-api-url')||'https://sistema-video-ai.vercel.app'}catch(e){return'https://sistema-video-ai.vercel.app'}},
 _token(){try{return localStorage.getItem('alphavideo-token')||''}catch(e){return''}},
 _headers(){
 const h={'Content-Type':'application/json'};
