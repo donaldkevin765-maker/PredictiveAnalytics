@@ -521,6 +521,129 @@
         .history-card-stats span { display: flex; align-items: center; gap: 4px; }
         .mc-canvas { width: 100%; height: 200px; border-radius: var(--radius-sm); background: rgba(0,0,0,0.3); margin-top: 10px; }
         [data-theme="light"] .mc-canvas { background: rgba(255,255,255,0.5); }
+
+        /* Engine v2 - Modular Architecture */
+        .engine-layout { display: flex; flex-direction: column; gap: 20px; }
+        .engine-input-section { display: flex; flex-direction: column; gap: 12px; }
+        .engine-status-bar { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-md); min-height: 44px; font-size: 0.85rem; color: var(--text-secondary); font-family: 'Fira Code', monospace; transition: all 0.3s ease; }
+        .engine-status-bar.loading { border-color: var(--brand-accent); box-shadow: 0 0 20px rgba(14,165,233,0.1); }
+        .engine-status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-tertiary); flex-shrink: 0; transition: background 0.3s; }
+        .engine-status-dot.active { background: var(--semantic-success); animation: pulseDot 1.5s infinite; }
+        .engine-status-dot.loading { background: var(--brand-accent); animation: pulseDot 0.8s infinite; }
+        .engine-status-dot.error { background: var(--semantic-danger); }
+        .engine-providers-bar { display: flex; flex-wrap: wrap; gap: 8px; min-height: 28px; font-size: 0.72rem; color: var(--text-tertiary); font-family: 'Fira Code', monospace; }
+        .engine-provider-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; background: var(--bg-surface); border: 1px solid var(--border-light); opacity: 0.5; transition: all 0.3s; }
+        .engine-provider-chip.active { opacity: 1; border-color: var(--brand-accent); }
+        .engine-provider-chip.done { opacity: 1; border-color: var(--semantic-success); }
+        .engine-provider-chip .chip-dot { width: 6px; height: 6px; border-radius: 50%; }
+        .engine-provider-chip .chip-dot.pending { background: var(--text-tertiary); }
+        .engine-provider-chip .chip-dot.loading { background: var(--brand-accent); animation: pulseDot 0.8s infinite; }
+        .engine-provider-chip .chip-dot.done { background: var(--semantic-success); }
+        .engine-provider-chip .chip-dot.error { background: var(--semantic-danger); }
+
+        .analysis-results { display: none; animation: fadeSlideIn 0.5s ease; }
+        .analysis-results.visible { display: block; }
+        @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+        .verdict-card { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 20px; background: var(--bg-surface); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); margin-bottom: 20px; position: relative; overflow: hidden; }
+        .verdict-card::before { content: ''; position: absolute; inset: 0; opacity: 0.05; border-radius: inherit; }
+        .verdict-card.green::before { background: linear-gradient(135deg, var(--semantic-success), transparent); }
+        .verdict-card.yellow::before { background: linear-gradient(135deg, var(--semantic-warning), transparent); }
+        .verdict-card.red::before { background: linear-gradient(135deg, var(--semantic-danger), transparent); }
+        .verdict-icon { font-size: 2.5rem; flex-shrink: 0; }
+        .verdict-text { flex: 1; min-width: 160px; }
+        .verdict-text h3 { font-size: 1.3rem; margin: 0 0 4px; color: var(--text-primary); }
+        .verdict-text p { font-size: 0.85rem; color: var(--text-tertiary); margin: 0; }
+        .verdict-score { font-family: 'Fira Code', monospace; font-size: 2rem; font-weight: 700; line-height: 1; }
+        .verdict-score .score-label { display: block; font-size: 0.65rem; font-weight: 400; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; }
+
+        .engine-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+        @media (min-width: 768px) { .engine-grid { grid-template-columns: 1fr 1fr; } }
+        @media (min-width: 1024px) { .engine-grid { grid-template-columns: 280px 1fr; } }
+
+        .engine-radar-card { background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+        .engine-radar-card svg { width: 100%; max-width: 220px; height: auto; }
+        .engine-metrics { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+        .engine-metric-row { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: var(--radius-sm); background: var(--bg-canvas); }
+        .engine-metric-bar { flex: 1; height: 8px; border-radius: 4px; background: var(--border-light); overflow: hidden; position: relative; }
+        .engine-metric-bar-fill { height: 100%; border-radius: 4px; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); width: 0%; }
+        .engine-metric-label { font-size: 0.75rem; color: var(--text-tertiary); white-space: nowrap; min-width: 48px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .engine-metric-value { font-family: 'Fira Code', monospace; font-size: 0.9rem; font-weight: 600; min-width: 40px; text-align: right; }
+        .engine-metric-bar-fill.risk { background: linear-gradient(90deg, var(--semantic-danger), #f87171); }
+        .engine-metric-bar-fill.profit { background: linear-gradient(90deg, var(--semantic-success), #4ade80); }
+        .engine-metric-bar-fill.validity { background: linear-gradient(90deg, var(--brand-accent), #38bdf8); }
+
+        .engine-details { display: flex; flex-direction: column; gap: 16px; }
+        .engine-section-card { background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 16px; }
+        .engine-section-title { font-size: 0.7rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .engine-section-title .title-icon { font-size: 0.85rem; }
+        .engine-section-body { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.65; }
+
+        .factor-list { display: flex; flex-direction: column; gap: 0; }
+        .factor-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border-light); font-size: 0.88rem; color: var(--text-secondary); }
+        .factor-item:last-child { border-bottom: none; }
+        .factor-item .factor-bullet { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+        .factor-item .factor-bullet.positive { background: var(--semantic-success); }
+        .factor-item .factor-bullet.neutral { background: var(--brand-accent); }
+        .factor-item .factor-bullet.negative { background: var(--semantic-danger); }
+
+        .pros-cons-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+        @media (min-width: 600px) { .pros-cons-grid { grid-template-columns: 1fr 1fr; } }
+
+        .pro-con-section { background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 16px; }
+        .pro-con-section h4 { font-size: 0.85rem; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+        .pro-con-section ul { list-style: none; margin: 0; padding: 0; }
+        .pro-con-section li { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border-light); font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; }
+        .pro-con-section li:last-child { border-bottom: none; }
+        .pro-con-section li .pc-icon { flex-shrink: 0; font-size: 0.8rem; margin-top: 2px; }
+        .pro-con-section.pros { border-left: 3px solid var(--semantic-success); }
+        .pro-con-section.cons { border-left: 3px solid var(--semantic-danger); }
+
+        .engine-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+        .engine-actions .ai-btn { flex: 1; min-width: 140px; padding: 12px 16px; font-size: 0.8rem; }
+
+        .provider-breakdown { display: flex; flex-direction: column; gap: 10px; }
+        .provider-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--bg-canvas); border-radius: var(--radius-sm); font-size: 0.8rem; }
+        .provider-row .provider-name { font-family: 'Fira Code', monospace; color: var(--text-primary); min-width: 80px; }
+        .provider-row .provider-bar { flex: 1; height: 6px; border-radius: 3px; background: var(--border-light); overflow: hidden; }
+        .provider-row .provider-bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+        .provider-row .provider-score { font-family: 'Fira Code', monospace; font-weight: 600; min-width: 32px; text-align: right; color: var(--text-secondary); }
+
+        .confidence-bar { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--bg-canvas); border-radius: var(--radius-sm); }
+        .confidence-label { font-size: 0.75rem; color: var(--text-tertiary); text-transform: uppercase; flex-shrink: 0; }
+        .confidence-track { flex: 1; height: 10px; border-radius: 5px; background: var(--border-light); overflow: hidden; }
+        .confidence-fill { height: 100%; border-radius: 5px; transition: width 0.8s ease; }
+        .confidence-value { font-family: 'Fira Code', monospace; font-size: 0.9rem; font-weight: 700; min-width: 36px; text-align: right; }
+
+        .status-skeleton { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+        .status-skeleton .sk-line { height: 12px; border-radius: 6px; background: var(--border-light); animation: skShimmer 1.5s infinite; }
+        .status-skeleton .sk-line:nth-child(2) { width: 80%; }
+        .status-skeleton .sk-line:nth-child(3) { width: 60%; }
+        @keyframes skShimmer { 0%,100% { opacity: 0.3; } 50% { opacity: 0.8; } }
+
+        .engine-output-box { margin-top: 12px; padding: 14px; background: var(--bg-canvas); border-radius: var(--radius-sm); border-left: 3px solid var(--brand-accent); font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; display: none; }
+        .engine-output-box.visible { display: block; animation: fadeSlideIn 0.4s ease; }
+        .engine-output-box.strategy { border-left-color: var(--brand-accent); }
+        .engine-output-box.crisis { border-left-color: var(--semantic-danger); }
+        .engine-output-box.probability { border-left-color: #8b5cf6; }
+
+        .engine-tools { display: flex; flex-direction: column; gap: 16px; margin-top: 16px; }
+        .engine-tool-card { background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 16px; display: flex; flex-direction: column; gap: 12px; transition: border-color 0.2s; }
+        .engine-tool-card:hover { border-color: var(--border-strong); }
+        .engine-tool-card.strategy { border-left: 3px solid var(--brand-accent); }
+        .engine-tool-card.crisis { border-left: 3px solid var(--semantic-danger); }
+        .engine-tool-card.probability { border-left: 3px solid #8b5cf6; }
+        .engine-tool-header { display: flex; align-items: flex-start; gap: 12px; }
+        .engine-tool-header .tool-icon { font-size: 1.5rem; flex-shrink: 0; margin-top: 1px; }
+        .engine-tool-header .tool-name { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); margin: 0; }
+        .engine-tool-header .tool-desc { font-size: 0.8rem; color: var(--text-tertiary); margin: 2px 0 0; line-height: 1.4; }
+        .engine-tool-card .ai-btn { align-self: flex-start; padding: 10px 20px; font-size: 0.82rem; }
+        @media (min-width: 768px) { .engine-tools { display: grid; grid-template-columns: 1fr 1fr 1fr; } .engine-tool-card .ai-btn { width: 100%; } }
+        @media (min-width: 768px) and (max-width: 1023px) { .engine-tools { grid-template-columns: 1fr 1fr; } }
+
+        .engine-section-card.sources { border-left: 3px solid var(--brand-accent); }
+        .source-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; font-size: 0.82rem; color: var(--text-secondary); line-height: 1.4; }
+        .source-item .source-bullet { flex-shrink: 0; color: var(--brand-accent); font-size: 0.7rem; margin-top: 2px; }
     </style>
 </head>
 <body>
@@ -584,10 +707,12 @@
                 <div class="nav-item" data-target="timeline">Proiezioni Future</div>
                 <div class="nav-item" data-target="curriculum">Curriculum</div>
                 <div class="nav-item" data-target="technical-report">Relazione Tecnica</div>
+                <div class="nav-item" data-target="advisor">AI Advisor</div>
                 <div class="nav-item" data-target="history">Cronologia Analisi</div>
             </nav>
             <div style="margin-top: auto; border-top: 1px solid var(--border-light); padding-top: 20px;">
                 <div class="nav-item" data-target="settings">Impostazioni</div>
+                <div class="nav-item" onclick="window.open('ai-content-studio/sistema-video-ai-automatico/index.html','_blank')" style="margin-top: 8px;">🎬 AI Video Studio</div>
                 <div class="nav-item" onclick="AlphaOS.UI.openQRModal()" style="margin-top: 8px;">QR Code Mobile</div>
             </div>
         </aside>
@@ -663,52 +788,144 @@
                         </div>
                     </div>
                 </section>
-<section id="engine" class="view">
-                    <div class="analyzer-header">
-                        <h2>Validazione Idea</h2>
-                        <p>Analisi AI predittiva per la tua idea di business. Rischio, profitto e fattibilità calcolati in tempo reale.</p>
-                        <div class="search-box">
-                            <input type="text" id="engine-input" placeholder="Es. Apertura nuova sede, lancio prodotto, startup..." onkeypress="if(event.key==='Enter') AlphaOS.Engine.runAnalysis()">
-                            <button onclick="AlphaOS.Engine.runAnalysis()" id="btn-analyze" class="ai-btn">Esegui</button>
-                        </div>
-                        <div class="status-log" id="engine-status"></div>
-                        <div id="engine-providers" style="font-family:'Fira Code',monospace;font-size:0.7rem;color:var(--text-tertiary);margin-top:8px;"></div>
-                    </div>
-                    <div class="analysis-dashboard" id="analysis-results" style="display: none;">
-                        <div class="radar-section">
-                            <svg class="radar-svg" viewBox="0 0 200 200">
-                                <circle cx="100" cy="100" r="80" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-                                <circle cx="100" cy="100" r="40" fill="none" stroke="rgba(255,255,255,0.05)"/>
-                                <line x1="100" y1="100" x2="100" y2="20" stroke="rgba(255,255,255,0.08)"/>
-                                <line x1="100" y1="100" x2="169.28" y2="140" stroke="rgba(255,255,255,0.08)"/>
-                                <line x1="100" y1="100" x2="30.72" y2="140" stroke="rgba(255,255,255,0.08)"/>
-                                <polygon id="radar-shape" class="radar-poly" points="100,100 100,100 100,100"/>
-                                <text x="100" y="8" fill="#52525b" font-size="10" font-family="Fira Code" text-anchor="middle" id="radar-lbl-risk">RISCHIO</text>
-                                <text x="180" y="152" fill="#52525b" font-size="10" font-family="Fira Code" text-anchor="middle" id="radar-lbl-profit">PROFITTO</text>
-                                <text x="20" y="152" fill="#52525b" font-size="10" font-family="Fira Code" text-anchor="middle" id="radar-lbl-valid">FATTIBILITA</text>
-                            </svg>
-                            <div class="metrics-grid">
-                                <div class="metric-item"><div class="metric-lbl" id="lbl-risk">Rischio stimato</div><div class="metric-val" id="val-risk" style="color: var(--semantic-danger);">0%</div></div>
-                                <div class="metric-item"><div class="metric-lbl" id="lbl-profit">Profitto potenziale</div><div class="metric-val" id="val-profit" style="color: var(--semantic-success);">0%</div></div>
-                                <div class="metric-item"><div class="metric-lbl" id="lbl-valid">Indice validita</div><div class="metric-val" id="val-valid" style="color: var(--text-primary);">0%</div></div>
+                <section id="engine" class="view">
+                    <div class="engine-layout">
+                        <div class="engine-input-section">
+                            <h2>Validazione Idea</h2>
+                            <p style="color: var(--text-tertiary); font-size: 0.9rem; margin: 0 0 8px;">Analisi AI predittiva multi-provider per la tua idea di business.</p>
+                            <div class="search-box">
+                                <input type="text" id="engine-input" placeholder="Es. Apertura nuova sede, lancio prodotto, startup..." onkeypress="if(event.key==='Enter') AlphaOS.Engine.runAnalysis()">
+                                <button onclick="AlphaOS.Engine.runAnalysis()" id="btn-analyze" class="ai-btn">Esegui</button>
                             </div>
+                            <div class="engine-status-bar" id="engine-status">
+                                <span class="engine-status-dot" id="status-dot"></span>
+                                <span id="status-text">Inserisci un'idea e avvia l'analisi</span>
+                            </div>
+                            <div class="engine-providers-bar" id="engine-providers"></div>
                         </div>
-                        <div class="details-section">
-                            <div id="analysis-context"></div>
-                            <div id="analysis-factors"></div>
-                            <div id="analysis-verification" style="margin-bottom:16px;padding:14px;background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-md);"></div>
-                            <div class="pro-con-card"><h4 style="color: var(--semantic-success);">Semaforo Verde</h4><ul class="pro-con-list" id="list-pros"></ul></div>
-                            <div class="pro-con-card"><h4 style="color: var(--semantic-danger);">Fattori Critici</h4><ul class="pro-con-list" id="list-cons"></ul></div>
-                            <div class="pro-con-card" style="border-left: 4px solid var(--brand-accent);">
-                                <h4>Go-To-Market & Crisis</h4>
-                                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 15px;">Genera strategie di lancio o simula scenari catastrofici.</p>
-                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                    <button onclick="AlphaOS.Engine.generateLaunchStrategy()" class="ai-btn" style="flex: 1; min-width: 150px; padding: 12px; font-size: 0.85rem;">Genera Strategia</button>
-                                    <button onclick="AlphaOS.Engine.simulateBlackSwan()" class="ai-btn" style="flex: 1; min-width: 150px; padding: 12px; font-size: 0.85rem; background: linear-gradient(135deg, #ef4444, #991b1b);">Simula Cigno Nero</button>
-                                    <button onclick="AlphaOS.Engine.runMonteCarlo()" class="ai-btn" style="flex: 1; min-width: 150px; padding: 12px; font-size: 0.85rem; background: linear-gradient(135deg, #8b5cf6, #6366f1);">Monte Carlo (1000)</button>
+
+                        <div class="analysis-results" id="analysis-results">
+                            <!-- Verdict -->
+                            <div class="verdict-card green" id="verdict-card">
+                                <div class="verdict-icon" id="verdict-icon">✅</div>
+                                <div class="verdict-text">
+                                    <h3 id="verdict-title">Analisi Completata</h3>
+                                    <p id="verdict-subtitle">Risultati basati su ensemble multi-AI</p>
                                 </div>
-                                <div id="launch-output" class="ai-output-box"></div>
-                                <div id="monte-carlo-output" class="ai-output-box" style="margin-top: 15px;"></div>
+                                <div class="verdict-score" id="verdict-score">
+                                    0
+                                    <span class="score-label">Validità</span>
+                                </div>
+                            </div>
+
+                            <div class="engine-grid">
+                                <!-- Radar + Metrics -->
+                                <div class="engine-radar-card">
+                                    <svg viewBox="0 0 200 200" style="max-width:220px;">
+                                        <circle cx="100" cy="100" r="80" fill="none" stroke="var(--border-light)" stroke-width="1"/>
+                                        <circle cx="100" cy="100" r="40" fill="none" stroke="var(--border-light)" stroke-width="0.5" stroke-dasharray="3,3"/>
+                                        <line x1="100" y1="100" x2="100" y2="20" stroke="var(--border-light)" stroke-width="0.5"/>
+                                        <line x1="100" y1="100" x2="169.28" y2="140" stroke="var(--border-light)" stroke-width="0.5"/>
+                                        <line x1="100" y1="100" x2="30.72" y2="140" stroke="var(--border-light)" stroke-width="0.5"/>
+                                        <polygon id="radar-shape" class="radar-poly" points="100,100 100,100 100,100" style="transition: points 0.6s ease;"/>
+                                        <text x="100" y="12" fill="var(--text-tertiary)" font-size="9" font-family="Fira Code" text-anchor="middle" opacity="0.6">RISCHIO</text>
+                                        <text x="178" y="150" fill="var(--text-tertiary)" font-size="9" font-family="Fira Code" text-anchor="middle" opacity="0.6">PROFITTO</text>
+                                        <text x="22" y="150" fill="var(--text-tertiary)" font-size="9" font-family="Fira Code" text-anchor="middle" opacity="0.6">VALIDITÀ</text>
+                                    </svg>
+                                    <div class="engine-metrics">
+                                        <div class="engine-metric-row">
+                                            <span class="engine-metric-label">Rischio</span>
+                                            <div class="engine-metric-bar"><div class="engine-metric-bar-fill risk" id="bar-risk" style="width:0%"></div></div>
+                                            <span class="engine-metric-value" id="val-risk" style="color:var(--semantic-danger);">0%</span>
+                                        </div>
+                                        <div class="engine-metric-row">
+                                            <span class="engine-metric-label">Profitto</span>
+                                            <div class="engine-metric-bar"><div class="engine-metric-bar-fill profit" id="bar-profit" style="width:0%"></div></div>
+                                            <span class="engine-metric-value" id="val-profit" style="color:var(--semantic-success);">0%</span>
+                                        </div>
+                                        <div class="engine-metric-row">
+                                            <span class="engine-metric-label">Validità</span>
+                                            <div class="engine-metric-bar"><div class="engine-metric-bar-fill validity" id="bar-valid" style="width:0%"></div></div>
+                                            <span class="engine-metric-value" id="val-valid" style="color:var(--brand-accent);">0%</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Details -->
+                                <div class="engine-details">
+                                    <!-- Market Context -->
+                                    <div class="engine-section-card" id="card-context" style="display:none;">
+                                        <div class="engine-section-title"><span class="title-icon">📊</span> Contesto di Mercato</div>
+                                        <div class="engine-section-body" id="analysis-context"></div>
+                                    </div>
+
+                                    <!-- Key Factors -->
+                                    <div class="engine-section-card" id="card-factors" style="display:none;">
+                                        <div class="engine-section-title"><span class="title-icon">🎯</span> Fattori Chiave</div>
+                                        <div class="factor-list" id="analysis-factors"></div>
+                                    </div>
+
+                                    <!-- Confidence & Sources -->
+                                    <div class="engine-section-card sources" id="card-verification" style="display:none;">
+                                        <div class="engine-section-title"><span class="title-icon">🔒</span> Affidabilità & Fonti</div>
+                                        <div id="analysis-verification"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pros/Cons -->
+                            <div class="pros-cons-grid" style="margin-top:16px;">
+                                <div class="pro-con-section pros">
+                                    <h4><span>✅</span> Punti di Forza</h4>
+                                    <ul id="list-pros"></ul>
+                                </div>
+                                <div class="pro-con-section cons">
+                                    <h4><span>⚠️</span> Criticità</h4>
+                                    <ul id="list-cons"></ul>
+                                </div>
+                            </div>
+
+                            <!-- Strumenti -->
+                            <div class="engine-section-title" style="margin-top:20px;"><span class="title-icon">🛠️</span> Strumenti di Analisi</div>
+                            <div class="engine-tools">
+                                <!-- Tool 1: Piano di Lancio -->
+                                <div class="engine-tool-card strategy">
+                                    <div class="engine-tool-header">
+                                        <span class="tool-icon">📋</span>
+                                        <div>
+                                            <div class="tool-name">Piano di Lancio</div>
+                                            <div class="tool-desc">Strategia dettagliata Go-To-Market con fasi, KPI e risorse necessarie per lanciare la tua idea</div>
+                                        </div>
+                                    </div>
+                                    <button onclick="AlphaOS.Engine.generateLaunchStrategy()" class="ai-btn">Genera Piano</button>
+                                    <div id="strategy-output" class="engine-output-box strategy"></div>
+                                </div>
+
+                                <!-- Tool 2: Scenario Peggiore -->
+                                <div class="engine-tool-card crisis">
+                                    <div class="engine-tool-header">
+                                        <span class="tool-icon">⚠️</span>
+                                        <div>
+                                            <div class="tool-name">Scenario Peggiore</div>
+                                            <div class="tool-desc">Simula un evento catastrofico imprevisto per testare la resilienza e preparare un piano di emergenza</div>
+                                        </div>
+                                    </div>
+                                    <button onclick="AlphaOS.Engine.simulateBlackSwan()" class="ai-btn" style="background:linear-gradient(135deg,#ef4444,#991b1b);">Simula Scenario</button>
+                                    <div id="crisis-output" class="engine-output-box crisis"></div>
+                                </div>
+
+                                <!-- Tool 3: Analisi Probabilità -->
+                                <div class="engine-tool-card probability">
+                                    <div class="engine-tool-header">
+                                        <span class="tool-icon">📊</span>
+                                        <div>
+                                            <div class="tool-name">Analisi Probabilità</div>
+                                            <div class="tool-desc">Esegue 1000 simulazioni statistiche per calcolare distribuzione degli esiti e probabilità di successo</div>
+                                        </div>
+                                    </div>
+                                    <button onclick="AlphaOS.Engine.runMonteCarlo()" class="ai-btn" style="background:linear-gradient(135deg,#8b5cf6,#6366f1);">Avvia Analisi</button>
+                                    <div id="monte-carlo-output" class="engine-output-box probability"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -896,7 +1113,19 @@
                         </div>
                     </div>
                 </section>
-
+                <section id="advisor" class="view">
+                    <div class="advisor-header">
+                        <h2>Consulente AI</h2>
+                        <p>Parla con il tuo consulente strategico personale. Fai domande, chiedi consigli, analizza scenari.</p>
+                    </div>
+                    <div class="chat-layout">
+                        <div class="chat-history" id="chat-history"></div>
+                        <div class="chat-input-area">
+                            <input type="text" id="chat-input" placeholder="Chiedi qualcosa al tuo consulente AI..." onkeypress="if(event.key==='Enter') AlphaOS.AI.sendMessage()">
+                            <button onclick="AlphaOS.AI.sendMessage()">Invia</button>
+                        </div>
+                    </div>
+                </section>
 
             </div>
             <nav class="bottom-nav" id="bottom-nav">
@@ -911,6 +1140,10 @@
                 <div class="bn-item" data-target="engine">
                     <span class="bn-icon">📊</span>
                     <span class="bn-label">Analisi</span>
+                </div>
+                <div class="bn-item" data-target="advisor">
+                    <span class="bn-icon">🤖</span>
+                    <span class="bn-label">AI</span>
                 </div>
                 <div class="bn-item" data-target="elite-radar">
                     <span class="bn-icon">🌍</span>
@@ -1088,13 +1321,13 @@
                     try { this.ctx = this.canvas.getContext('2d'); } catch(e) { return; }
                     this.resize();
                     window.addEventListener('resize', () => this.resize());
-                    this.createNodes(80);
+                    this.createNodes(40);
                 },
                 resize: function() { if (!this.canvas) return; this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight; },
                 createNodes: function(count) {
                     this.nodes = [];
                     for (let i = 0; i < count; i++) {
-                        this.nodes.push({ x: Math.random() * this.canvas.width, y: Math.random() * this.canvas.height, vx: (Math.random() - 0.5) * 1.5, vy: (Math.random() - 0.5) * 1.5, radius: Math.random() * 2 + 1, pulse: Math.random() * Math.PI * 2 });
+                        this.nodes.push({ x: Math.random() * this.canvas.width, y: Math.random() * this.canvas.height, vx: (Math.random() - 0.5) * 1.2, vy: (Math.random() - 0.5) * 1.2, radius: Math.random() * 2 + 1, pulse: Math.random() * Math.PI * 2 });
                     }
                 },
                 activate: function() {
@@ -1102,18 +1335,19 @@
                     this.isActive = true;
                     this.canvas.classList.add('active');
                     this.animate();
-                    setTimeout(() => this.deactivate(), 4000);
+                    setTimeout(() => this.deactivate(), 2500);
                 },
                 deactivate: function() { this.isActive = false; if (this.canvas) this.canvas.classList.remove('active'); if (this.animFrame) cancelAnimationFrame(this.animFrame); },
                 animate: function() {
                     if (!this.isActive || !this.ctx) return;
+                    if (document.hidden) { this.animFrame = requestAnimationFrame(() => this.animate()); return; }
                     const ctx = this.ctx, w = this.canvas.width, h = this.canvas.height;
                     ctx.clearRect(0, 0, w, h);
                     this.nodes.forEach(n => { n.x += n.vx; n.y += n.vy; n.pulse += 0.05; if (n.x < 0 || n.x > w) n.vx *= -1; if (n.y < 0 || n.y > h) n.vy *= -1; });
                     for (let i = 0; i < this.nodes.length; i++) {
                         for (let j = i + 1; j < this.nodes.length; j++) {
                             const dx = this.nodes[i].x - this.nodes[j].x, dy = this.nodes[i].y - this.nodes[j].y, dist = Math.sqrt(dx * dx + dy * dy);
-                            if (dist < 150) { const opacity = (1 - dist / 150) * 0.3; ctx.beginPath(); ctx.moveTo(this.nodes[i].x, this.nodes[i].y); ctx.lineTo(this.nodes[j].x, this.nodes[j].y); ctx.strokeStyle = `rgba(14, 165, 233, ${opacity})`; ctx.lineWidth = 0.5; ctx.stroke(); }
+                            if (dist < 100) { const opacity = (1 - dist / 100) * 0.25; ctx.beginPath(); ctx.moveTo(this.nodes[i].x, this.nodes[i].y); ctx.lineTo(this.nodes[j].x, this.nodes[j].y); ctx.strokeStyle = 'rgba(14, 165, 233, ' + opacity + ')'; ctx.lineWidth = 0.5; ctx.stroke(); }
                         }
                     }
                     this.nodes.forEach(n => { const pulseSize = n.radius + Math.sin(n.pulse); ctx.beginPath(); ctx.arc(n.x, n.y, pulseSize, 0, Math.PI * 2); ctx.fillStyle = 'rgba(14, 165, 233, 0.6)'; ctx.fill(); });
@@ -1122,22 +1356,28 @@
             },
 
             Particles: {
-                canvas: null, ctx: null, particles: [], mouse: { x: -1000, y: -1000 },
+                canvas: null, ctx: null, particles: [], mouse: { x: -1000, y: -1000 }, timer: null, visible: true,
                 init: function() {
                     this.canvas = document.getElementById('particle-canvas');
                     if (!this.canvas) return;
                     try { this.ctx = this.canvas.getContext('2d'); } catch(e) { return; }
                     this.resize();
                     window.addEventListener('resize', () => this.resize());
-                    document.addEventListener('mousemove', (e) => { this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
-                    for (let i = 0; i < 60; i++) {
-                        this.particles.push({ x: Math.random() * this.canvas.width, y: Math.random() * this.canvas.height, vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5, radius: Math.random() * 1.5 + 0.5 });
+                    document.addEventListener('mousemove', (e) => { this.mouse.x = e.clientX; this.mouse.y = e.clientY; }, { passive: true });
+                    for (let i = 0; i < 40; i++) {
+                        this.particles.push({ x: Math.random() * this.canvas.width, y: Math.random() * this.canvas.height, vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4, radius: Math.random() * 1.5 + 0.5 });
                     }
-                    this.animate();
+                    if ('IntersectionObserver' in window) {
+                        const obs = new IntersectionObserver((entries) => { this.visible = entries[0].isIntersecting; }, { threshold: 0 });
+                        obs.observe(this.canvas);
+                    }
+                    this.scheduleTick();
                 },
                 resize: function() { if (!this.canvas) return; this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight; },
+                scheduleTick: function() { this.timer = setTimeout(() => this.animate(), 33); },
                 animate: function() {
                     if (!this.ctx) return;
+                    if (!this.visible || document.hidden) { this.scheduleTick(); return; }
                     const ctx = this.ctx, w = this.canvas.width, h = this.canvas.height;
                     ctx.clearRect(0, 0, w, h);
                     this.particles.forEach(p => {
@@ -1152,10 +1392,10 @@
                     for (let i = 0; i < this.particles.length; i++) {
                         for (let j = i + 1; j < this.particles.length; j++) {
                             const dx = this.particles[i].x - this.particles[j].x, dy = this.particles[i].y - this.particles[j].y, dist = Math.sqrt(dx * dx + dy * dy);
-                            if (dist < 120) { ctx.beginPath(); ctx.moveTo(this.particles[i].x, this.particles[i].y); ctx.lineTo(this.particles[j].x, this.particles[j].y); ctx.strokeStyle = `rgba(14, 165, 233, ${0.15 * (1 - dist / 120)})`; ctx.lineWidth = 0.5; ctx.stroke(); }
+                            if (dist < 100) { ctx.beginPath(); ctx.moveTo(this.particles[i].x, this.particles[i].y); ctx.lineTo(this.particles[j].x, this.particles[j].y); ctx.strokeStyle = 'rgba(14, 165, 233, ' + (0.12 * (1 - dist / 100)) + ')'; ctx.lineWidth = 0.5; ctx.stroke(); }
                         }
                     }
-                    requestAnimationFrame(() => this.animate());
+                    this.scheduleTick();
                 }
             },
 
@@ -1772,8 +2012,15 @@
                 },
                 start3HourSyncSimulation: function() {
                     let secondsLeft = 3 * 3600; const timerEl = document.getElementById('sync-countdown');
-                    setInterval(() => { secondsLeft--; if (secondsLeft <= 0) secondsLeft = 3 * 3600; let h = Math.floor(secondsLeft / 3600), m = Math.floor((secondsLeft % 3600) / 60), s = secondsLeft % 60; if (timerEl) timerEl.innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`; }, 1000);
+                    let radarVisible = true;
+                    const radarSection = document.getElementById('elite-radar');
+                    if (radarSection && 'IntersectionObserver' in window) {
+                        const ro = new IntersectionObserver((entries) => { radarVisible = entries[0].isIntersecting; }, { threshold: 0 });
+                        ro.observe(radarSection);
+                    }
+                    setInterval(() => { if (!radarVisible) return; secondsLeft--; if (secondsLeft <= 0) secondsLeft = 3 * 3600; let h = Math.floor(secondsLeft / 3600), m = Math.floor((secondsLeft % 3600) / 60), s = secondsLeft % 60; if (timerEl) timerEl.innerText = h.toString().padStart(2, '0') + ':' + m.toString().padStart(2, '0') + ':' + s.toString().padStart(2, '0'); }, 1000);
                     setInterval(() => {
+                        if (!radarVisible) return;
                         for (let i = 0; i < 5; i++) {
                             let idx = Math.floor(Math.random() * this.assetData.length), asset = this.assetData[idx];
                             let change = asset.baseTrend === 'up' ? Math.floor(Math.random() * 16) - 4 : Math.floor(Math.random() * 16) - 11;
@@ -1787,7 +2034,42 @@
             Engine: {
                 lastResult: null,
 
-                callEnsemble: async function(prompt) {
+                _setStatus: function(msg, type) {
+                    const bar = document.getElementById('engine-status');
+                    const dot = document.getElementById('status-dot');
+                    const text = document.getElementById('status-text');
+                    if (bar) { bar.classList.remove('loading'); }
+                    if (dot) { dot.className = 'engine-status-dot'; }
+                    if (type === 'loading') {
+                        if (bar) bar.classList.add('loading');
+                        if (dot) dot.classList.add('loading');
+                        if (text) text.textContent = msg;
+                    } else if (type === 'done') {
+                        if (dot) dot.classList.add('active');
+                        if (text) text.textContent = msg;
+                    } else if (type === 'error') {
+                        if (dot) dot.classList.add('error');
+                        if (text) text.textContent = msg;
+                    } else {
+                        if (dot) dot.classList.add('active');
+                        if (text) text.textContent = msg;
+                    }
+                },
+
+                _renderProviderChips: function(enabled, states) {
+                    const el = document.getElementById('engine-providers');
+                    if (!el) return;
+                    const names = { gemini: 'Gemini', openai: 'OpenAI', anthropic: 'Anthropic' };
+                    const chips = enabled.map(p => {
+                        const state = (states && states[p.key]) || 'pending';
+                        const dotClass = state === 'loading' ? 'loading' : state === 'done' ? 'done' : state === 'error' ? 'error' : 'pending';
+                        const chipClass = state === 'done' ? 'engine-provider-chip done' : state === 'loading' || state === 'active' ? 'engine-provider-chip active' : 'engine-provider-chip';
+                        return `<span class="${chipClass}"><span class="chip-dot ${dotClass}"></span>${names[p.key] || p.name}</span>`;
+                    }).join('');
+                    el.innerHTML = chips || '<span style="opacity:0.5">Nessun provider configurato</span>';
+                },
+
+                callEnsemble: async function(prompt, onProgress) {
                     const results = await AlphaOS.API.callEnsemble(prompt);
                     const succeeded = results.filter(r => r.text);
                     if (succeeded.length === 0) {
@@ -1805,21 +2087,22 @@
                 runAnalysis: async function() {
                     const input = document.getElementById('engine-input');
                     if (!input || !input.value.trim()) return;
-                    const status = document.getElementById('engine-status');
                     const dashboard = document.getElementById('analysis-results');
                     const btn = document.getElementById('btn-analyze');
-                    if (dashboard) dashboard.style.display = 'none';
                     if (btn) btn.disabled = true;
+                    if (dashboard) dashboard.classList.remove('visible');
                     AlphaOS.NeuralNet.activate();
 
                     const enabled = AlphaOS.API.getEnabledProviders();
                     if (enabled.length === 0) {
-                        if (status) status.innerText = "> Nessuna API configurata. Vai in Impostazioni.";
+                        this._setStatus('Nessuna API configurata. Vai in Impostazioni.', 'error');
                         if (btn) btn.disabled = false;
                         AlphaOS.Toast.warning('API Mancante', 'Configura almeno una chiave API in Impostazioni');
                         return;
                     }
-                    if (status) status.innerText = `> Consultazione ${enabled.map(p => p.name).join(' + ')}...`;
+
+                    this._renderProviderChips(enabled, {});
+                    this._setStatus('Consultazione ' + enabled.map(p => p.name).join(' + ') + '...', 'loading');
 
                     const prompt = `Sei un analista senior di Predictive Analytics. Analizza l'idea imprenditoriale in modo approfondito e verifica ogni valutazione con dati di mercato reali.
 
@@ -1847,12 +2130,18 @@ Rispondi SOLO con un JSON valido (senza markdown):
 
                     const results = await this.callEnsemble(prompt);
                     if (results.length === 0) {
-                        if (status) status.innerText = "> Errore: nessun provider disponibile.";
+                        this._setStatus('Errore: nessun provider disponibile.', 'error');
+                        this._renderProviderChips(enabled, {});
                         if (btn) btn.disabled = false;
                         return;
                     }
 
+                    const providerStates = {};
+                    results.forEach(r => { providerStates[r.key] = 'done'; });
+                    this._renderProviderChips(enabled, providerStates);
+
                     let risks = [], profits = [], valids = [], confidences = [], allPros = [], allCons = [], allSources = [], allFactors = [], allContexts = [], allVerifications = [];
+                    let providerScores = [];
                     results.forEach(r => {
                         try {
                             const clean = r.text.replace(/```json/gi, '').replace(/```/g, '').trim();
@@ -1867,6 +2156,14 @@ Rispondi SOLO con un JSON valido (senza markdown):
                             if (json.key_factors) allFactors.push(...json.key_factors);
                             if (json.market_context) allContexts.push(json.market_context);
                             if (json.verification) allVerifications.push(json.verification);
+                            providerScores.push({
+                                name: r.name,
+                                key: r.key,
+                                color: r.key === 'gemini' ? '#4285f4' : r.key === 'openai' ? '#10a37f' : '#d97706',
+                                risk: json.risk !== undefined ? parseInt(json.risk) : null,
+                                profit: json.profit !== undefined ? parseInt(json.profit) : null,
+                                valid: json.validity !== undefined ? parseInt(json.validity) : null
+                            });
                         } catch(e) {}
                     });
 
@@ -1877,67 +2174,145 @@ Rispondi SOLO con un JSON valido (senza markdown):
                     const pros = allPros.length ? dedup(allPros) : ['Potenziale di mercato identificato'];
                     const cons = allCons.length ? dedup(allCons) : ['Necessaria analisi approfondita'];
                     const sources = allSources.length ? [...new Set(allSources)].slice(0, 4) : [];
-                    const keyFactors = allFactors.length ? [...new Set(allFactors)].slice(0, 4) : [];
+                    const keyFactors = allFactors.length ? [...new Set(allFactors)].slice(0, 5) : [];
                     const marketContext = allContexts.length ? allContexts[0] : '';
                     const verification = allVerifications.length ? allVerifications[0] : '';
 
                     this.lastResult = { risk, profit, valid, pros, cons, title: input.value.trim(), providers: results.map(r => r.name) };
 
-                    if (status) status.innerText = `> Analisi completata (${results.map(r => r.name).join(', ')}).`;
-                    const providersEl = document.getElementById('engine-providers');
-                    if (providersEl) providersEl.innerHTML = results.map(r => `<span style="color:var(--brand-accent);">●</span> ${r.name}`).join(' &nbsp;');
+                    this._setStatus('Analisi completata (' + results.map(r => r.name).join(', ') + ').', 'done');
 
+                    // Verdict card
+                    const verdictScore = document.getElementById('verdict-score');
+                    const verdictTitle = document.getElementById('verdict-title');
+                    const verdictSub = document.getElementById('verdict-subtitle');
+                    const verdictIcon = document.getElementById('verdict-icon');
+                    const verdictCard = document.getElementById('verdict-card');
+                    if (verdictScore) {
+                        const firstChild = verdictScore.firstChild;
+                        if (firstChild) verdictScore.textContent = valid + '%';
+                        verdictScore.appendChild(document.createElement('span'));
+                        verdictScore.lastChild.className = 'score-label';
+                        verdictScore.lastChild.textContent = 'Validità';
+                    }
+                    if (verdictTitle) {
+                        if (valid >= 65) verdictTitle.textContent = '✅ Idea Promettente';
+                        else if (valid >= 40) verdictTitle.textContent = '⚠️ Idea da Rivedere';
+                        else verdictTitle.textContent = '❌ Idea ad Alto Rischio';
+                    }
+                    if (verdictSub) {
+                        if (valid >= 65) verdictSub.textContent = 'Fattibilità alta — buone probabilità di successo';
+                        else if (valid >= 40) verdictSub.textContent = 'Fattibilità media — richiede aggiustamenti significativi';
+                        else verdictSub.textContent = 'Fattibilità bassa — rischi elevati, rivaluta l\'approccio';
+                    }
+                    if (verdictIcon) {
+                        if (valid >= 65) verdictIcon.textContent = '✅';
+                        else if (valid >= 40) verdictIcon.textContent = '⚠️';
+                        else verdictIcon.textContent = '❌';
+                    }
+                    if (verdictCard) {
+                        verdictCard.className = 'verdict-card';
+                        if (valid >= 65) verdictCard.classList.add('green');
+                        else if (valid >= 40) verdictCard.classList.add('yellow');
+                        else verdictCard.classList.add('red');
+                    }
+
+                    // Provider breakdown in verdict area
+                    if (providerScores.length > 1) {
+                        const pBreakdown = document.createElement('div');
+                        pBreakdown.className = 'provider-breakdown';
+                        pBreakdown.style.marginTop = '12px';
+                        pBreakdown.style.width = '100%';
+                        providerScores.forEach(p => {
+                            const avgScore = p.valid !== null ? p.valid : 50;
+                            const barColor = avgScore >= 65 ? 'var(--semantic-success)' : avgScore >= 40 ? 'var(--semantic-warning)' : 'var(--semantic-danger)';
+                            pBreakdown.innerHTML += `<div class="provider-row">
+                                <span class="provider-name" style="color:${p.color}">${p.name}</span>
+                                <div class="provider-bar"><div class="provider-bar-fill" style="width:${avgScore}%;background:${barColor};"></div></div>
+                                <span class="provider-score">${avgScore}%</span>
+                            </div>`;
+                        });
+                        const existing = verdictCard.querySelector('.provider-breakdown');
+                        if (existing) existing.remove();
+                        verdictCard.appendChild(pBreakdown);
+                    }
+
+                    // Bars & radar
                     this.updateRadar(risk, profit, valid);
+
+                    // Pros/Cons
                     const listPros = document.getElementById('list-pros');
                     const listCons = document.getElementById('list-cons');
-                    if (listPros) listPros.innerHTML = pros.map(p => '<li>' + p + '</li>').join('');
-                    if (listCons) listCons.innerHTML = cons.map(c => '<li>' + c + '</li>').join('');
+                    if (listPros) listPros.innerHTML = pros.map(p => '<li><span class="pc-icon">✅</span>' + AlphaOS.escapeHtml(p) + '</li>').join('');
+                    if (listCons) listCons.innerHTML = cons.map(c => '<li><span class="pc-icon">⚠️</span>' + AlphaOS.escapeHtml(c) + '</li>').join('');
 
-                    const contextEl = document.getElementById('analysis-context');
-                    if (contextEl && marketContext) {
-                        contextEl.innerHTML = `<div style="margin-bottom:16px;padding:14px;background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-md);">
-                            <div style="font-size:0.7rem;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Contesto di Mercato</div>
-                            <div style="font-size:0.9rem;color:var(--text-secondary);line-height:1.6;">${marketContext}</div>
-                        </div>`;
-                    }
+                    // Market Context
+                    const cardCtx = document.getElementById('card-context');
+                    const ctxEl = document.getElementById('analysis-context');
+                    if (cardCtx && ctxEl && marketContext) {
+                        ctxEl.textContent = marketContext;
+                        cardCtx.style.display = 'block';
+                    } else if (cardCtx) cardCtx.style.display = 'none';
+
+                    // Key Factors
+                    const cardFactors = document.getElementById('card-factors');
                     const factorsEl = document.getElementById('analysis-factors');
-                    if (factorsEl && keyFactors.length) {
-                        factorsEl.innerHTML = `<div style="margin-bottom:16px;padding:14px;background:var(--bg-surface);border:1px solid var(--border-light);border-radius:var(--radius-md);">
-                            <div style="font-size:0.7rem;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Fattori Chiave</div>
-                            ${keyFactors.map(f => `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-light);font-size:0.9rem;color:var(--text-secondary);"><span style="color:var(--brand-accent);">▸</span> ${f}</div>`).join('')}
-                        </div>`;
-                    }
-                    const verificationEl = document.getElementById('analysis-verification');
-                    if (verificationEl) {
+                    if (cardFactors && factorsEl && keyFactors.length) {
+                        factorsEl.innerHTML = keyFactors.map((f, i) => {
+                            const bullet = i % 3 === 0 ? 'positive' : i % 3 === 1 ? 'neutral' : 'negative';
+                            return `<div class="factor-item"><span class="factor-bullet ${bullet}"></span>${AlphaOS.escapeHtml(f)}</div>`;
+                        }).join('');
+                        cardFactors.style.display = 'block';
+                    } else if (cardFactors) cardFactors.style.display = 'none';
+
+                    // Verification & Sources
+                    const cardVer = document.getElementById('card-verification');
+                    const verEl = document.getElementById('analysis-verification');
+                    if (cardVer && verEl) {
                         let html = '';
                         if (confidence !== null) {
                             const color = confidence > 70 ? 'var(--semantic-success)' : confidence > 40 ? 'var(--semantic-warning)' : 'var(--semantic-danger)';
-                            html += `<div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;">
-                                <span style="font-size:0.75rem;color:var(--text-tertiary);text-transform:uppercase;">Affidabilità:</span>
-                                <span style="font-family:'Fira Code',monospace;font-size:1.1rem;font-weight:700;color:${color};">${confidence}%</span>
-                            </div>`;
+                            html += `<div class="confidence-bar"><span class="confidence-label">Affidabilità</span><div class="confidence-track"><div class="confidence-fill" style="width:${confidence}%;background:${color};"></div></div><span class="confidence-value" style="color:${color};">${confidence}%</span></div>`;
                         }
                         if (sources.length) {
-                            html += `<div style="margin-bottom:8px;font-size:0.75rem;color:var(--text-tertiary);text-transform:uppercase;">Fonti verificate:</div>
-                                ${sources.map(s => `<div style="display:flex;align-items:flex-start;gap:6px;padding:4px 0;font-size:0.82rem;color:var(--text-secondary);"><span style="color:var(--brand-accent);font-size:0.65rem;">📄</span> ${s}</div>`).join('')}`;
+                            html += '<div style="margin-top:10px;font-size:0.75rem;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Fonti verificate:</div>';
+                            html += sources.map(s => `<div class="source-item"><span class="source-bullet">📄</span>${AlphaOS.escapeHtml(s)}</div>`).join('');
                         }
                         if (verification) {
-                            html += `<div style="margin-top:10px;padding:8px 12px;background:rgba(14,165,233,0.08);border-radius:6px;font-size:0.8rem;color:var(--text-tertiary);border-left:2px solid var(--brand-accent);">${verification}</div>`;
+                            html += '<div style="margin-top:10px;padding:10px 12px;background:rgba(14,165,233,0.06);border-radius:6px;font-size:0.82rem;color:var(--text-tertiary);border-left:2px solid var(--brand-accent);">' + AlphaOS.escapeHtml(verification) + '</div>';
                         }
-                        if (html) verificationEl.innerHTML = html;
+                        verEl.innerHTML = html;
+                        cardVer.style.display = html ? 'block' : 'none';
                     }
-                    if (dashboard) dashboard.style.display = 'grid';
+
+                    if (dashboard) dashboard.classList.add('visible');
                     if (btn) btn.disabled = false;
                     AlphaOS.History.save({ title: input.value.trim(), risk, profit, valid, pros, cons });
-                    AlphaOS.Toast.success('Ensemble', `Analisi completata con ${results.length} AI`);
+                    AlphaOS.Toast.success('Ensemble', 'Analisi completata con ' + results.length + ' AI');
                 },
 
                 updateRadar: function(risk, profit, valid) {
-                    const poly = document.getElementById('radar-shape'); const cx = 100, cy = 100, r = 80;
+                    const poly = document.getElementById('radar-shape');
+                    const cx = 100, cy = 100, r = 80;
                     const rR = (risk / 100) * r, pR = (profit / 100) * r, vR = (valid / 100) * r;
-                    const p1x = cx, p1y = cy - rR, p2x = cx + pR * Math.cos(Math.PI / 6), p2y = cy + pR * Math.sin(Math.PI / 6), p3x = cx - vR * Math.cos(Math.PI / 6), p3y = cy + vR * Math.sin(Math.PI / 6);
-                    if (poly) poly.setAttribute('points', `${p1x},${p1y} ${p2x},${p2y} ${p3x},${p3y}`);
-                    AlphaOS.UI.animateValue('val-risk', risk); AlphaOS.UI.animateValue('val-profit', profit); AlphaOS.UI.animateValue('val-valid', valid);
+                    const p1x = cx, p1y = cy - rR;
+                    const p2x = cx + pR * Math.cos(Math.PI / 6);
+                    const p2y = cy + pR * Math.sin(Math.PI / 6);
+                    const p3x = cx - vR * Math.cos(Math.PI / 6);
+                    const p3y = cy + vR * Math.sin(Math.PI / 6);
+                    if (poly) poly.setAttribute('points', p1x + ',' + p1y + ' ' + p2x + ',' + p2y + ' ' + p3x + ',' + p3y);
+                    const barRisk = document.getElementById('bar-risk');
+                    const barProfit = document.getElementById('bar-profit');
+                    const barValid = document.getElementById('bar-valid');
+                    if (barRisk) barRisk.style.width = risk + '%';
+                    if (barProfit) barProfit.style.width = profit + '%';
+                    if (barValid) barValid.style.width = valid + '%';
+                    const valRisk = document.getElementById('val-risk');
+                    const valProfit = document.getElementById('val-profit');
+                    const valValid = document.getElementById('val-valid');
+                    if (valRisk) valRisk.textContent = risk + '%';
+                    if (valProfit) valProfit.textContent = profit + '%';
+                    if (valValid) valValid.textContent = valid + '%';
                 },
 
                 reconfigureOS: function() {
@@ -1948,11 +2323,11 @@ Rispondi SOLO con un JSON valido (senza markdown):
                             if (overlay) overlay.style.display = 'flex'; if (termLogs) termLogs.innerHTML = '';
                             const addLog = async (msg, delay = 400) => { return new Promise(res => { setTimeout(() => { if (!termLogs) return res(); const time = new Date().toISOString().split('T')[1].slice(0, -1); termLogs.innerHTML += `<div style="margin-bottom:6px;"><span style="color:var(--text-tertiary);">[${time}]</span> ${msg}</div>`; termLogs.scrollTop = termLogs.scrollHeight; res(); }, delay); }); };
                             await addLog("> BOOT SEQUENCE INITIATED...", 100);
-                            await addLog(`> TARGET SECTOR: ${business.toUpperCase()}`);
-                            await addLog(`> LOCATION LOCK: ${location.toUpperCase()}`);
+                            await addLog("> TARGET SECTOR: " + business.toUpperCase());
+                            await addLog("> LOCATION LOCK: " + location.toUpperCase());
                             await addLog("> Requesting Geospatial & Legal Matrix...");
                             AlphaOS.businessContext = business; AlphaOS.locationContext = location; AlphaOS.I18N.updateSystemPrompt();
-                            await addLog(`> Geospatial Match: LAT ${(Math.random() * 180 - 90).toFixed(4)}, LNG ${(Math.random() * 360 - 180).toFixed(4)}`, 600);
+                            await addLog("> Geospatial Match: LAT " + (Math.random() * 180 - 90).toFixed(4) + ", LNG " + (Math.random() * 360 - 180).toFixed(4), 600);
                             await addLog("> Injecting custom color profile...", 400);
                             await addLog("> Realigning Neural KPIs...", 300);
                             await addLog("> Updating DOM interface semantics...", 400);
@@ -1962,107 +2337,57 @@ Rispondi SOLO con un JSON valido (senza markdown):
                             const globeWrapper = document.getElementById('main-globe-wrapper'); if (globeWrapper) globeWrapper.classList.add('zoomed');
                             const reticle = document.getElementById('globe-reticle'); if (reticle) reticle.style.display = 'block';
                             const popup = document.getElementById('location-popup'), popupOverlay = document.getElementById('location-popup-overlay');
-                            if (popup) { popup.style.animation = 'slideInHUD 0.7s forwards'; document.getElementById('loc-popup-city').textContent = location.toUpperCase(); document.getElementById('loc-popup-content').innerHTML = `<strong>LOCK GEOGRAFICO:</strong> ${location.toUpperCase()}<br><br>Analisi completata per <strong>${business}</strong>.<br><br>Protocolli GDPR attivi. Costi sovrastimati del 35%. Sistema operativo e blindato.`; popup.style.display = 'flex'; }
+                            if (popup) { popup.style.animation = 'slideInHUD 0.7s forwards'; document.getElementById('loc-popup-city').textContent = location.toUpperCase(); document.getElementById('loc-popup-content').innerHTML = '<strong>LOCK GEOGRAFICO:</strong> ' + location.toUpperCase() + '<br><br>Analisi completata per <strong>' + business + '</strong>.<br><br>Protocolli GDPR attivi. Costi sovrastimati del 35%. Sistema operativo e blindato.'; popup.style.display = 'flex'; }
                             if (popupOverlay) popupOverlay.style.display = 'block';
-                            AlphaOS.Toast.success('Reconfiguration', `Sistema configurato per ${business} a ${location}`);
+                            AlphaOS.Toast.success('Reconfiguration', 'Sistema configurato per ' + business + ' a ' + location);
                         } catch (e) { const overlay = document.getElementById('reconfig-overlay'); if (overlay) overlay.style.display = 'none'; }
                     });
                 },
 
                 generateLaunchStrategy: async function() {
                     const input = document.getElementById('engine-input');
-                    const outputBox = document.getElementById('launch-output');
+                    const outputBox = document.getElementById('strategy-output');
                     if (!input || !outputBox) return;
                     if (!input.value.trim()) {
                         outputBox.style.display = 'block';
                         outputBox.innerText = "Inserisci prima un'idea nel campo di ricerca.";
-                        outputBox.classList.add('show');
+                        outputBox.classList.add('visible');
                         return;
                     }
                     outputBox.style.display = 'block';
-                    outputBox.innerText = "Generazione strategia AI in corso...";
-                    outputBox.classList.add('show');
+                    outputBox.innerHTML = "Generazione strategia AI in corso...";
+                    outputBox.classList.add('visible');
 
-                    const prompt = `Sei un consulente strategico senior specializzato in Go-To-Market. Genera una strategia di lancio professionale e verificata per: "${input.value.trim()}".
-
-REQUISITI:
-- Analisi basata su dati di mercato reali e tendenze attuali
-- Ogni fase deve includere KPI misurabili e tempistiche realistiche
-- Cita fonti/dati di mercato dove pertinente
-
-Struttura:
-
-FASE 1: PRE-LANCIO
-- Ricerche di mercato e analisi competitor
-- Setup operativo e compliance
-- Budget e risorse necessarie
-- KPI: [metriche misurabili]
-
-FASE 2: LANCIO
-- Strategia di go-to-market
-- Canali di acquisizione
-- Partner e alleanze strategiche
-- KPI: [metriche misurabili]
-
-FASE 3: SCALING
-- Crescita e ottimizzazione
-- Nuovi mercati
-- Data monetization
-- KPI: [metriche misurabili]
-
-COSA FARE / COSA NON FARE / RIFERIMENTI
-
-Massimo 400 parole. Rispondi in Italiano.`;
+                    const prompt = 'Sei un consulente strategico senior specializzato in Go-To-Market. Genera una strategia di lancio professionale e verificata per: "' + input.value.trim() + '".\n\nREQUISITI:\n- Analisi basata su dati di mercato reali e tendenze attuali\n- Ogni fase deve includere KPI misurabili e tempistiche realistiche\n- Cita fonti/dati di mercato dove pertinente\n\nStruttura:\n\nFASE 1: PRE-LANCIO\n- Ricerche di mercato e analisi competitor\n- Setup operativo e compliance\n- Budget e risorse necessarie\n- KPI: [metriche misurabili]\n\nFASE 2: LANCIO\n- Strategia di go-to-market\n- Canali di acquisizione\n- Partner e alleanze strategiche\n- KPI: [metriche misurabili]\n\nFASE 3: SCALING\n- Crescita e ottimizzazione\n- Nuovi mercati\n- Data monetization\n- KPI: [metriche misurabili]\n\nCOSA FARE / COSA NON FARE / RIFERIMENTI\n\nMassimo 400 parole. Rispondi in Italiano.';
 
                     const results = await this.callEnsemble(prompt);
                     if (results.length === 0) return;
-                    const combined = results.map(r => `<div style="margin-bottom:16px;padding:12px;border-left:3px solid var(--brand-accent);background:var(--bg-surface);border-radius:8px;">
-                        <div style="font-size:0.7rem;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">${r.name}</div>
-                        ${r.text.replace(/\n/g, '<br>')}
-                    </div>`).join('<hr style="border-color:var(--border-light);margin:12px 0;">');
+                    const combined = results.map(r => '<div style="margin-bottom:16px;padding:12px;border-left:3px solid var(--brand-accent);background:var(--bg-surface);border-radius:8px;"><div style="font-size:0.7rem;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">' + r.name + '</div>' + r.text.replace(/\n/g, '<br>') + '</div>').join('<hr style="border-color:var(--border-light);margin:12px 0;">');
                     outputBox.innerHTML = combined;
-                    AlphaOS.Toast.success('Strategia', `Strategie generate da ${results.length} AI`);
+                    AlphaOS.Toast.success('Strategia', 'Strategie generate da ' + results.length + ' AI');
                 },
 
                 simulateBlackSwan: async function() {
                     const input = document.getElementById('engine-input');
-                    const outputBox = document.getElementById('launch-output');
+                    const outputBox = document.getElementById('crisis-output');
                     if (!input || !outputBox) return;
                     if (!input.value.trim()) {
                         outputBox.style.display = 'block';
                         outputBox.innerText = "Inserisci prima un'idea nel campo di ricerca.";
-                        outputBox.classList.add('show');
+                        outputBox.classList.add('visible');
                         return;
                     }
                     outputBox.style.display = 'block';
                     outputBox.innerHTML = "Generazione scenario Cigno Nero...";
-                    outputBox.classList.add('show');
+                    outputBox.classList.add('visible');
 
-                    const prompt = `Sei un analista di rischio specializzato in scenari "Cigno Nero" (Black Swan Events) con esperienza in predictive analytics. Simula un evento catastrofico realistico basato su trend economici e normativi attuali per: "${input.value.trim()}".
-
-REQUISITI:
-- Scenario basato su rischi reali e verificabili del settore
-- Impatto quantificato con dati e percentuali
-- Citare normative, trend di mercato o precedenti storici come fonti
-
-Struttura:
-
-SCENARIO: [descrizione evento inaspettato ma plausibile, con riferimenti a trend reali]
-IMPATTO: [conseguenze quantitative, con stime basate su dati di settore]
-PERCHE' DISTRUGGE IL BUSINESS: [vulnerabilità specifiche del modello]
-MITIGAZIONE: [strategia di resilience]
-AZIONE IMMEDIATA: [3 passi concreti da eseguire subito]
-
-Massimo 350 parole. Rispondi in Italiano.`;
+                    const prompt = 'Sei un analista di rischio specializzato in scenari "Cigno Nero" (Black Swan Events) con esperienza in predictive analytics. Simula un evento catastrofico realistico basato su trend economici e normativi attuali per: "' + input.value.trim() + '".\n\nREQUISITI:\n- Scenario basato su rischi reali e verificabili del settore\n- Impatto quantificato con dati e percentuali\n- Citare normative, trend di mercato o precedenti storici come fonti\n\nStruttura:\n\nSCENARIO: [descrizione evento inaspettato ma plausibile, con riferimenti a trend reali]\nIMPATTO: [conseguenze quantitative, con stime basate su dati di settore]\nPERCHE\' DISTRUGGE IL BUSINESS: [vulnerabilità specifiche del modello]\nMITIGAZIONE: [strategia di resilience]\nAZIONE IMMEDIATA: [3 passi concreti da eseguire subito]\n\nMassimo 350 parole. Rispondi in Italiano.';
 
                     const results = await this.callEnsemble(prompt);
                     if (results.length === 0) return;
-                    const combined = results.map(r => `<div style="margin-bottom:16px;padding:12px;border-left:3px solid var(--semantic-danger);background:var(--bg-surface);border-radius:8px;">
-                        <div style="font-size:0.7rem;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">${r.name}</div>
-                        ${r.text.replace(/\n/g, '<br>')}
-                    </div>`).join('<hr style="border-color:var(--border-light);margin:12px 0;">');
+                    const combined = results.map(r => '<div style="margin-bottom:16px;padding:12px;border-left:3px solid var(--semantic-danger);background:var(--bg-surface);border-radius:8px;"><div style="font-size:0.7rem;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">' + r.name + '</div>' + r.text.replace(/\n/g, '<br>') + '</div>').join('<hr style="border-color:var(--border-light);margin:12px 0;">');
                     outputBox.innerHTML = combined;
-                    AlphaOS.Toast.warning('Black Swan', `Scenari generati da ${results.length} AI`);
+                    AlphaOS.Toast.warning('Black Swan', 'Scenari generati da ' + results.length + ' AI');
                 },
 
                 runMonteCarlo: function() {
@@ -2238,7 +2563,7 @@ Massimo 350 parole. Rispondi in Italiano.`;
                 run: function(idea, params) {
                     const output = document.getElementById('monte-carlo-output');
                     if (!output) return;
-                    output.style.display = 'block'; output.innerHTML = '<div style="text-align:center;padding:20px;"><div style="font-family:\'Fira Code\',monospace;color:var(--brand-accent);">Esecuzione simulazione Monte Carlo...</div></div>'; output.classList.add('show');
+                    output.style.display = 'block'; output.innerHTML = '<div style="text-align:center;padding:20px;"><div style="font-family:\'Fira Code\',monospace;color:var(--brand-accent);">Esecuzione simulazione Monte Carlo...</div></div>'; output.classList.add('visible');
                     setTimeout(() => {
                         const N = 1000;
                         const baseMean = params ? (params.valid + params.profit) / 2 : 50;
@@ -2321,7 +2646,12 @@ Massimo 350 parole. Rispondi in Italiano.`;
                         geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
                         this.pointsMaterial = new THREE.PointsMaterial({ size: 2.5, color: new THREE.Color('#0ea5e9'), transparent: true, opacity: 0.9 });
                         const points = new THREE.Points(geo, this.pointsMaterial); group.add(points);
-                        function animate() { requestAnimationFrame(animate); group.rotation.y += 0.002; group.rotation.z += 0.001; renderer.render(scene, camera); }
+                        let globeActive = true;
+                        if ('IntersectionObserver' in window) {
+                            const go = new IntersectionObserver((entries) => { globeActive = entries[0].isIntersecting; }, { threshold: 0 });
+                            go.observe(container);
+                        }
+                        function animate() { requestAnimationFrame(animate); if (!globeActive || document.hidden) { return; } group.rotation.y += 0.002; group.rotation.z += 0.001; renderer.render(scene, camera); }
                         animate();
                         window.addEventListener('resize', () => { if (container.clientWidth > 0) { camera.aspect = container.clientWidth / container.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(container.clientWidth, container.clientHeight); } });
                     } catch (e) { }
@@ -2373,6 +2703,7 @@ Massimo 350 parole. Rispondi in Italiano.`;
             }
         };
 
+        document.addEventListener('visibilitychange', function() { if (document.hidden) { try { AlphaOS.NeuralNet.deactivate(); } catch(e) {} } });
         window.AlphaOS = AlphaOS;
         AlphaOS.supabaseUrl = 'https://kbwaolqwdhswgkicbzmx.supabase.co';
         AlphaOS.supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtid2FvbHF3ZGhzd2draWNiem14Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDgwNjcxMywiZXhwIjoyMDkwMzgyNzEzfQ.M5A2UL9jSsWsKaKe2SrQnOnBVfZX57C7GxixEepxhAQ';

@@ -1,0 +1,10 @@
+{
+  "buildCommand": "pip install -r requirements.txt",
+  "outputDirectory": ".",
+  "framework": "python",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/api/index.py" }
+  ],
+  "env": {
+    "PYTHON_VERSION": "3.12"
+  }

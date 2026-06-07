@@ -1,0 +1,14 @@
+{
+  "name": "AlphaOS — AI Video Studio",
+  "short_name": "AI Video Studio",
+  "description": "Crea script video professionali con AI multi-provider. Storyboard, voiceover, export.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0a0b",
+  "theme_color": "#0ea5e9",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
