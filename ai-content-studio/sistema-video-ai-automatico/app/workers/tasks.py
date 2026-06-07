@@ -5,7 +5,7 @@ from pathlib import Path
 from loguru import logger
 
 from app.workers.celery_app import celery_app
-from app.database import async_session
+from app.database import get_session_factory
 from app.models.video import Video
 from app.models.scene import Scene
 from app.services.text_to_speech import TextToSpeechService
@@ -40,7 +40,7 @@ async def _generate_video(video_id: int, task):
     sub_gen = SubtitleGenerator()
     webhook = WebhookService()
 
-    async with async_session() as db:
+    async with get_session_factory()() as db:
         result = await db.execute(select(Video).where(Video.id == video_id))
         video = result.scalar_one_or_none()
         if not video:

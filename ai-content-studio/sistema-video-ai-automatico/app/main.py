@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -47,9 +49,10 @@ async def health():
     issues = []
 
     try:
-        from app.database import async_session
+        from app.database import get_session_factory
         from sqlalchemy import text
-        async with async_session() as db:
+        factory = get_session_factory()
+        async with factory() as db:
             await db.execute(text("SELECT 1"))
     except Exception as e:
         checks["database"] = f"error: {e}"

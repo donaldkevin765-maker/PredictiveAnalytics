@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pydantic_settings import BaseSettings
 from pathlib import Path
 from typing import Optional
@@ -50,10 +52,13 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
+import os as _os
 BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_DIR = BASE_DIR / "data"
-OUTPUT_DIR = BASE_DIR / settings.output_dir
-ASSETS_DIR = BASE_DIR / settings.assets_dir
+_VERCEL = _os.environ.get("VERCEL") == "1"
+_ROOT_DIR = Path(_os.environ.get("VERCEL_STARTER_DIR", str(BASE_DIR))) if _VERCEL else BASE_DIR
+DATA_DIR = _ROOT_DIR / "data" if not _VERCEL else Path("/tmp/data")
+OUTPUT_DIR = _ROOT_DIR / settings.output_dir if not _VERCEL else Path("/tmp/output")
+ASSETS_DIR = _ROOT_DIR / settings.assets_dir
 FONTS_DIR = ASSETS_DIR / "fonts"
 AUDIO_DIR = OUTPUT_DIR / "audio"
 IMAGES_DIR = OUTPUT_DIR / "images"

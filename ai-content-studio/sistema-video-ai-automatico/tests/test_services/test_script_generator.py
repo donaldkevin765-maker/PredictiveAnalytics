@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 from app.services.script_generator import ScriptGenerator
 
