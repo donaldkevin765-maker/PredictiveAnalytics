@@ -41,6 +41,31 @@ app.include_router(projects.router, prefix="/api/v1/projects", tags=["projects"]
 app.include_router(videos.router, prefix="/api/v1/videos", tags=["videos"])
 
 
+@app.get("/api/v1/services")
+async def list_services():
+    from app.config import settings as _s
+    return {
+        "tts": {
+            "available": ["gtts", "pyttsx3", "elevenlabs"],
+            "configured": _s.tts_engine,
+            "elevenlabs": bool(_s.elevenlabs_api_key),
+            "free_tier": "gTTS (illimitato), ElevenLabs (10k chars/mese)",
+        },
+        "automation": {
+            "n8n": bool(_s.webhook_url or _s.n8n_webhook_url),
+            "note": "Self-hosta n8n gratis: docker run -it --rm -p 5678:5678 n8nio/n8n",
+        },
+        "project_management": {
+            "notion": bool(_s.notion_api_key and _s.notion_database_id),
+            "note": "API Notion gratuita: https://www.notion.so/my-integrations",
+        },
+        "excluded_services": {
+            "reason": "Veo, Runway, HeyGen, Kling: API a pagamento. NotebookLM, Grammarly, Gamma, Perplexity: nessuna API pubblica gratuita.",
+            "alternative": "Usa HuggingFace (gratis) per immagini, gTTS per TTS, Ollama per LLM.",
+        },
+    }
+
+
 @app.get("/")
 async def root():
     return {

@@ -16,8 +16,26 @@ class TextToSpeechService:
             return await self._coqui(text, str(out), lang)
         elif engine == "pyttsx3":
             return self._pyttsx3(text, str(out))
+        elif engine == "elevenlabs":
+            return await self._elevenlabs(text, str(out), lang)
         else:
             return await self._gtts(text, str(out), lang)
+
+    async def _elevenlabs(self, text: str, output_path: str, lang: str | None = None) -> str:
+        try:
+            from app.services.elevenlabs import ElevenLabsService
+            svc = ElevenLabsService()
+            return await svc.generate(text, output_path, lang)
+        except RuntimeError as e:
+            err = str(e)
+            if err in ("rate_limit", "no_credits"):
+                logger.warning(f"ElevenLabs: {err}, fallback a gTTS")
+                return await self._gtts(text, output_path, lang or settings.tts_lang)
+            logger.warning(f"ElevenLabs non disponibile ({err}), fallback a gTTS")
+            return await self._gtts(text, output_path, lang or settings.tts_lang)
+        except Exception as e:
+            logger.warning(f"ElevenLabs errore ({e}), fallback a gTTS")
+            return await self._gtts(text, output_path, lang or settings.tts_lang)
 
     async def _gtts(self, text: str, output_path: str, lang: str) -> str:
         try:

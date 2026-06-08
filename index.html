@@ -712,7 +712,7 @@
             </nav>
             <div style="margin-top: auto; border-top: 1px solid var(--border-light); padding-top: 20px;">
                 <div class="nav-item" data-target="settings">Impostazioni</div>
-                <div class="nav-item" onclick="window.open('https://sistema-video-ai.vercel.app/docs','_blank')" style="margin-top: 8px;">🎬 AI Video Studio API</div>
+                <div class="nav-item" onclick="window.open('https://sistema-video-ai.vercel.app/docs','_blank')" style="margin-top: 8px;">🎬 AI Video Studio <span id="api-status" style="font-size:10px;color:#666">⏳</span></div>
                 <div class="nav-item" onclick="AlphaOS.UI.openQRModal()" style="margin-top: 8px;">QR Code Mobile</div>
             </div>
         </aside>
@@ -2722,6 +2722,7 @@ Rispondi SOLO con un JSON valido (senza markdown):
         AlphaOS.supabaseUrl = 'https://kbwaolqwdhswgkicbzmx.supabase.co';
         AlphaOS.supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtid2FvbHF3ZGhzd2draWNiem14Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDgwNjcxMywiZXhwIjoyMDkwMzgyNzEzfQ.M5A2UL9jSsWsKaKe2SrQnOnBVfZX57C7GxixEepxhAQ';
         document.addEventListener('DOMContentLoaded', () => { AlphaOS.start(); });
+fetch('https://sistema-video-ai.vercel.app/health').then(r=>r.json()).then(d=>{const e=document.getElementById('api-status');if(e){e.textContent=d.status==='healthy'?'🟢':'🟡';e.style.color=d.status==='healthy'?'#22c55e':'#eab308';e.title='API: '+d.status}}).catch(()=>{const e=document.getElementById('api-status');if(e){e.textContent='🔴';e.style.color='#ef4444';e.title='API offline'}});
     </script>
 </body>
 </html>

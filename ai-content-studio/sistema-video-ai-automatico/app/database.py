@@ -1,5 +1,7 @@
 from __future__ import annotations
 import os
+from pathlib import Path
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 from app.config import settings
@@ -15,9 +17,13 @@ def _resolve_db_url() -> str:
         if "sslmode" not in url and "ssl=" not in url:
             sep = "&" if "?" in url else "?"
             url = f"{url}{sep}sslmode=require"
+        logger.info(f"Usando Postgres: {url.split('@')[-1].split('?')[0]}")
         return url
     if os.environ.get("VERCEL") == "1":
-        return "postgresql+asyncpg://nowhere:nowhere@127.0.0.1:1/nowhere"
+        db_path = Path("/tmp/data/video_ai.db")
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        logger.warning(f"Nessuna DATABASE_URL, uso SQLite effimero su {db_path} (dati persi a ogni cold start)")
+        return f"sqlite+aiosqlite:///{db_path}"
     return settings.database_url
 
 

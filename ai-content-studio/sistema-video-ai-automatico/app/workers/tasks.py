@@ -14,6 +14,7 @@ from app.services.video_compiler import VideoCompiler
 from app.services.subtitle_generator import SubtitleGenerator
 from app.services.webhook import WebhookService
 from app.services.progress import progress_tracker
+from app.services.notion_integration import NotionService
 from app.utils.file_utils import audio_output_path, image_output_path, video_output_path
 from app.supabase_client import get_supabase_storage
 from sqlalchemy import select
@@ -39,6 +40,7 @@ async def _generate_video(video_id: int, task):
     compiler = VideoCompiler()
     sub_gen = SubtitleGenerator()
     webhook = WebhookService()
+    notion = NotionService()
 
     async with get_session_factory()() as db:
         result = await db.execute(select(Video).where(Video.id == video_id))
@@ -59,6 +61,20 @@ async def _generate_video(video_id: int, task):
             await db.commit()
             await webhook.video_error(video_id, "Nessuna scena trovata")
             return
+
+        try:
+            await webhook.n8n_trigger("video-start", {
+                "video_id": video_id,
+                "title": video.title or "",
+            })
+        except Exception:
+            pass
+
+        try:
+            project_title = getattr(video, 'title', 'Video AI') or 'Video AI'
+            await notion.create_video_project(project_title, f"Video #{video_id}", video.script or "")
+        except Exception:
+            pass
 
         progress_tracker.start(video_id, len(scenes))
 

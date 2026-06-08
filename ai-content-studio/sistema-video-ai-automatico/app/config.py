@@ -41,6 +41,14 @@ class Settings(BaseSettings):
     webhook_url: Optional[str] = None
     webhook_secret: str = ""
 
+    elevenlabs_api_key: str = ""
+    elevenlabs_voice_id: str = ""
+
+    notion_api_key: str = ""
+    notion_database_id: str = ""
+
+    n8n_webhook_url: Optional[str] = None
+
     default_language: str = "it"
 
     output_dir: str = "./output"

@@ -43,3 +43,22 @@ class WebhookService:
             "video_id": video_id,
             "error": error,
         })
+
+    async def video_progress(self, video_id: int, percent: float, step: str):
+        await self.notify("video.progress", {
+            "video_id": video_id,
+            "percent": percent,
+            "step": step,
+        })
+
+    async def n8n_trigger(self, workflow_id: str, payload: dict):
+        """Triggera un workflow n8n self-hostato.
+
+        Configura WEBHOOK_URL = http://localhost:5678/webhook/<workflow_id>
+        n8n è open source e gratuito: docker run -it --rm -p 5678:5678 n8nio/n8n
+        """
+        url = getattr(settings, 'n8n_webhook_url', None) or self.url
+        if not url:
+            logger.warning("n8n: WEBHOOK_URL non configurata")
+            return
+        await self.notify(f"n8n.{workflow_id}", payload)
