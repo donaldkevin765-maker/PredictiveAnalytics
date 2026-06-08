@@ -49,19 +49,43 @@ async def list_services():
             "available": ["gtts", "pyttsx3", "elevenlabs"],
             "configured": _s.tts_engine,
             "elevenlabs": bool(_s.elevenlabs_api_key),
-            "free_tier": "gTTS (illimitato), ElevenLabs (10k chars/mese)",
+            "info": "gTTS (illimitato), ElevenLabs (10k chars/mese)",
+        },
+        "llm": {
+            "gemini": bool(_s.gemini_api_key),
+            "groq": bool(_s.groq_api_key),
+            "openrouter": bool(_s.openrouter_api_key),
+            "ollama": bool(_s.ollama_base_url and "localhost" not in _s.ollama_base_url),
+            "info": "Gemini (60 req/min), Groq (30 req/min), OpenRouter ($1 gratis poi free models)",
+        },
+        "translation": {
+            "deepl": bool(_s.deepl_api_key),
+            "google_fallback": True,
+            "info": "DeepL (500k char/mese), fallback Google Translate",
+        },
+        "stock_media": {
+            "pexels": bool(_s.pexels_api_key),
+            "info": "Pexels (gratuito con attribuzione, video+foto stock)",
+        },
+        "music": {
+            "musicgen": bool(_s.hf_api_token),
+            "placeholder": True,
+            "info": "MusicGen via HF API (gratis), o placeholder sintetico",
+        },
+        "stt": {
+            "whisper": True,
+            "info": "Whisper open source (self-hosted, scarica modello ~1.5GB alla prima run)",
         },
         "automation": {
             "n8n": bool(_s.webhook_url or _s.n8n_webhook_url),
-            "note": "Self-hosta n8n gratis: docker run -it --rm -p 5678:5678 n8nio/n8n",
+            "info": "n8n open source: docker run -it --rm -p 5678:5678 n8nio/n8n",
         },
         "project_management": {
             "notion": bool(_s.notion_api_key and _s.notion_database_id),
-            "note": "API Notion gratuita: https://www.notion.so/my-integrations",
+            "info": "API Notion gratuita: https://www.notion.so/my-integrations",
         },
-        "excluded_services": {
-            "reason": "Veo, Runway, HeyGen, Kling: API a pagamento. NotebookLM, Grammarly, Gamma, Perplexity: nessuna API pubblica gratuita.",
-            "alternative": "Usa HuggingFace (gratis) per immagini, gTTS per TTS, Ollama per LLM.",
+        "free_forever": {
+            "info": "Whisper, MusicGen placeholder, gTTS, Google Translate fallback, Ollama (locale), HuggingFace Inference API - tutti gratis senza limiti",
         },
     }
 

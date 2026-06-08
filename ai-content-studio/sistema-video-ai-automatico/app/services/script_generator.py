@@ -13,18 +13,26 @@ class ScriptGenerator:
     async def generate(self, topic: str, duration_sec: int = 60, style: str = "informativo") -> dict:
         logger.info(f"Generazione script: topic={topic}, durata={duration_sec}s, stile={style}")
 
-        if settings.ollama_base_url:
+        provider_order = ["ensemble", "ollama"]
+
+        for provider in provider_order:
             try:
-                return await self._generate_with_llm(topic, duration_sec, style)
+                if provider == "ensemble":
+                    from app.services.llm_providers import LLMEnsemble
+                    result = await LLMEnsemble().generate(self._build_prompt(topic, duration_sec, style))
+                    if result:
+                        return self._parse_llm_result(result, topic, duration_sec, style)
+                elif provider == "ollama" and settings.ollama_base_url:
+                    return await self._generate_with_llm(topic, duration_sec, style)
             except Exception as e:
-                logger.warning(f"LLM non disponibile, uso fallback: {e}")
+                logger.warning(f"Provider {provider} fallito: {e}")
+                continue
 
         return self._generate_template(topic, duration_sec, style)
 
-    async def _generate_with_llm(self, topic: str, duration_sec: int, style: str) -> dict:
+    def _build_prompt(self, topic: str, duration_sec: int, style: str) -> str:
         num_scenes = max(2, min(8, duration_sec // 10))
-
-        prompt = f"""Sei un scriptwriter professionista per video brevi. Genera uno script per un video di {duration_sec} secondi sul tema: "{topic}".
+        return f"""Sei un scriptwriter professionista per video brevi. Genera uno script per un video di {duration_sec} secondi sul tema: "{topic}".
 Stile: {style}
 Numero di scene: {num_scenes}
 
@@ -39,16 +47,21 @@ Rispondi SOLO con JSON valido nel formato:
 Ogni scena deve avere un contenuto di circa 2-3 frasi. Le image_prompt devono essere descrittive e visive.
 La durata totale di tutte le scene deve essere circa {duration_sec} secondi."""
 
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            resp = await client.post(
-                self.ollama_url,
-                json={"model": self.model, "prompt": prompt, "stream": False, "format": "json"},
-            )
-            resp.raise_for_status()
-
-        raw = resp.json().get("response", "")
-        data = json.loads(raw)
-
+    def _parse_llm_result(self, result: str, topic: str, duration_sec: int, style: str) -> dict:
+        import re as _re
+        num_scenes = max(2, min(8, duration_sec // 10))
+        try:
+            cleaned = _re.sub(r"^```(?:json)?\s*|\s*```$", "", result.strip(), flags=_re.MULTILINE)
+            data = json.loads(cleaned)
+        except json.JSONDecodeError:
+            match = _re.search(r"\{.*\}", result, _re.DOTALL)
+            if match:
+                try:
+                    data = json.loads(match.group())
+                except json.JSONDecodeError:
+                    raise
+            else:
+                raise
         scenes = []
         for i, s in enumerate(data.get("scenes", [])):
             scenes.append({
@@ -57,9 +70,21 @@ La durata totale di tutte le scene deve essere circa {duration_sec} secondi."""
                 "subtitle_text": s.get("content", f"Scena {i+1}"),
                 "duration": float(s.get("duration", duration_sec / num_scenes)),
             })
-
         full_script = "\n\n".join(s["content"] for s in scenes)
         return {"full_script": full_script, "scenes": scenes}
+
+    async def _generate_with_llm(self, topic: str, duration_sec: int, style: str) -> dict:
+        prompt = self._build_prompt(topic, duration_sec, style)
+
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            resp = await client.post(
+                self.ollama_url,
+                json={"model": self.model, "prompt": prompt, "stream": False, "format": "json"},
+            )
+            resp.raise_for_status()
+
+        raw = resp.json().get("response", "")
+        return self._parse_llm_result(raw, topic, duration_sec, style)
 
     def _generate_template(self, topic: str, duration_sec: int, style: str) -> dict:
         import random

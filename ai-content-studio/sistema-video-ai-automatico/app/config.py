@@ -49,6 +49,14 @@ class Settings(BaseSettings):
 
     n8n_webhook_url: Optional[str] = None
 
+    deepl_api_key: str = ""
+    gemini_api_key: str = ""
+    groq_api_key: str = ""
+    openrouter_api_key: str = ""
+    openrouter_model: str = "mistralai/mistral-7b-instruct:free"
+    openrouter_referer: str = "http://localhost:8000"
+    pexels_api_key: str = ""
+
     default_language: str = "it"
 
     output_dir: str = "./output"
