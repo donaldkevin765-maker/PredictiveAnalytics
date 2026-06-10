@@ -1,0 +1,19 @@
+{
+  "name": "ai-content-studio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI Content Studio - Piattaforma di creazione video AI (tutto gratuito/open-source)",
+  "workspaces": ["web"],
+  "scripts": {
+    "dev": "npm run dev --workspace=web",
+    "build": "npm run build --workspace=web",
+    "start": "npm run start --workspace=web",
+    "backend": "cd sistema-video-ai-automatico && uvicorn app.main:app --reload --port 8000",
+    "backend:install": "cd sistema-video-ai-automatico && pip install -r requirements.txt || pip install -e .",
+    "dev:all": "concurrently \"npm run dev\" \"npm run backend\"",
+    "setup": "npm install && npm run backend:install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}

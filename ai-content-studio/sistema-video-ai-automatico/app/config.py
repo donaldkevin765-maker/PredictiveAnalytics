@@ -57,6 +57,14 @@ class Settings(BaseSettings):
     openrouter_referer: str = "http://localhost:8000"
     pexels_api_key: str = ""
 
+    youtube_client_id: str = ""
+    youtube_client_secret: str = ""
+    instagram_client_id: str = ""
+    instagram_client_secret: str = ""
+    tiktok_client_key: str = ""
+    tiktok_client_secret: str = ""
+    social_callback_base: str = "http://localhost:8000"
+
     default_language: str = "it"
 
     output_dir: str = "./output"

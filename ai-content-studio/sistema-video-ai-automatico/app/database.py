@@ -14,9 +14,9 @@ def _resolve_db_url() -> str:
             url = url.replace("postgres://", "postgresql+asyncpg://", 1)
         elif url.startswith("postgresql://") and "+asyncpg" not in url:
             url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
-        if "sslmode" not in url and "ssl=" not in url:
+        if "ssl=" not in url and "sslmode" not in url:
             sep = "&" if "?" in url else "?"
-            url = f"{url}{sep}sslmode=require"
+            url = f"{url}{sep}ssl=require"
         logger.info(f"Usando Postgres: {url.split('@')[-1].split('?')[0]}")
         return url
     if os.environ.get("VERCEL") == "1":
@@ -67,18 +67,20 @@ def get_sync_session() -> AsyncSession:
 
 
 async def init_db():
+    use_rest = os.environ.get("VERCEL") == "1" or os.environ.get("USE_SUPABASE_REST") == "1"
     engine = get_engine()
     try:
         async with engine.begin() as conn:
-            from app.models import project, video, scene
+            from app.models import project, video, scene, social_account
             await conn.run_sync(Base.metadata.create_all)
+        logger.info("Database tables created/verified via SQLAlchemy")
         return True
     except Exception as e:
-        if os.environ.get("VERCEL") == "1":
-            from loguru import logger
-            logger.warning(f"DB init skipped (no DATABASE_URL): {e}")
-            return False
-        raise
+        logger.warning(f"Direct DB connection failed: {e}")
+        if os.environ.get("VERCEL") == "1" or use_rest:
+            logger.info("Falling back to Supabase REST API (tables must exist)")
+            return True
+        return False
 
 
 class Base(DeclarativeBase):

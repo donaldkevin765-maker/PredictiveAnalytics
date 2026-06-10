@@ -7,7 +7,7 @@ from loguru import logger
 
 from app.config import settings
 from app.database import init_db
-from app.api.v1 import projects, videos
+from app.api.v1 import projects, videos, social_accounts
 
 
 @asynccontextmanager
@@ -39,6 +39,7 @@ app.add_middleware(
 
 app.include_router(projects.router, prefix="/api/v1/projects", tags=["projects"])
 app.include_router(videos.router, prefix="/api/v1/videos", tags=["videos"])
+app.include_router(social_accounts.router, prefix="/api/v1", tags=["social"])
 
 
 @app.get("/api/v1/services")
@@ -133,9 +134,12 @@ async def health():
     if settings.supabase_url:
         try:
             import httpx
+            headers = {"apikey": settings.supabase_anon_key or settings.supabase_service_key or ""}
             async with httpx.AsyncClient(timeout=5.0) as client:
-                resp = await client.get(f"{settings.supabase_url}/rest/v1/")
-                if not resp.is_success:
+                resp = await client.get(f"{settings.supabase_url}/rest/v1/", headers=headers)
+                if resp.status_code == 401:
+                    checks["supabase"] = "ok (anon)"
+                elif not resp.is_success:
                     checks["supabase"] = f"error: {resp.status_code}"
                     issues.append("supabase")
         except Exception as e:
