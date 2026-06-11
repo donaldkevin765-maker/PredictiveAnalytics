@@ -505,31 +505,37 @@
                 </section>
 
             </div>
-            <nav class="bottom-nav" id="bottom-nav">
-                <div class="bn-item active" data-target="dashboard">
-                    <span class="bn-icon">🏠</span>
-                    <span class="bn-label">Home</span>
-                </div>
-                <div class="bn-item" data-target="about">
-                    <span class="bn-icon">👤</span>
+            <nav class="bottom-nav" id="bottom-nav" role="navigation" aria-label="Navigazione principale">
+                <button class="bn-item active" data-target="dashboard" aria-current="page" aria-label="Dashboard">
+                    <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    <span class="bn-label">Dashboard</span>
+                    <span class="bn-indicator" aria-hidden="true"></span>
+                </button>
+                <button class="bn-item" data-target="about" aria-label="Profilo">
+                    <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                     <span class="bn-label">Profilo</span>
-                </div>
-                <div class="bn-item" data-target="engine">
-                    <span class="bn-icon">📊</span>
+                    <span class="bn-indicator" aria-hidden="true"></span>
+                </button>
+                <button class="bn-item" data-target="engine" aria-label="Analisi Progetto">
+                    <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
                     <span class="bn-label">Analisi</span>
-                </div>
-                <div class="bn-item" data-target="advisor">
-                    <span class="bn-icon">🤖</span>
-                    <span class="bn-label">AI</span>
-                </div>
-                <div class="bn-item" data-target="elite-radar">
-                    <span class="bn-icon">🌍</span>
+                    <span class="bn-indicator" aria-hidden="true"></span>
+                </button>
+                <button class="bn-item" data-target="advisor" aria-label="Consulente AI">
+                    <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2"></rect></svg>
+                    <span class="bn-label">AI Advisor</span>
+                    <span class="bn-indicator" aria-hidden="true"></span>
+                </button>
+                <button class="bn-item" data-target="elite-radar" aria-label="Global Intelligence">
+                    <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
                     <span class="bn-label">Global</span>
-                </div>
-                <div class="bn-item" id="bn-more">
-                    <span class="bn-icon">☰</span>
-                    <span class="bn-label">Più</span>
-                </div>
+                    <span class="bn-indicator" aria-hidden="true"></span>
+                </button>
+                <button class="bn-item bn-more-trigger" id="bn-more" aria-label="Altre sezioni" aria-expanded="false" aria-controls="bn-more-menu">
+                    <svg class="bn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+                    <span class="bn-label">Altro</span>
+                    <span class="bn-indicator" aria-hidden="true"></span>
+                </button>
             </nav>
         </main>
     </div>
