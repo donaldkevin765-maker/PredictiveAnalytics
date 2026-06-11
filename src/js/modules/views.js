@@ -321,56 +321,89 @@ AlphaOS.PDF = {
 
 AlphaOS.PDFViewer = {
     init: function() {
-        if (this._loaded) return;
-        this._loaded = true;
+        if (this._loaded && this._pdfDoc) {
+            this._renderPage(1);
+            return;
+        }
+        if (this._loading) return;
+        this._loading = true;
         const container = document.getElementById('pdf-viewer');
         if (!container) return;
         container.innerHTML = '<p style="color: var(--text-tertiary); font-family: Fira Code, monospace; padding: 40px;">Caricamento PDF.js...</p>';
         const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs';
+        script.type = 'module';
         script.onload = () => {
-            window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-            let pdfDoc = null, pageNum = 1, pageRendering = false, pageNumPending = null;
-            const canvas = document.getElementById('pdf-canvas');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            function renderPage(num) {
-                pageRendering = true;
-                pdfDoc.getPage(num).then(page => {
-                    const viewport = page.getViewport({ scale: 1.5 });
-                    canvas.height = viewport.height;
-                    canvas.width = viewport.width;
-                    const renderContext = { canvasContext: ctx, viewport: viewport, background: 'transparent' };
-                    return page.render(renderContext).promise;
-                }).then(() => {
-                    pageRendering = false;
-                    const info = document.getElementById('pdf-page-info');
-                    if (info) info.textContent = 'Pagina ' + num + ' / ' + pdfDoc.numPages;
-                    const prev = document.getElementById('pdf-prev');
-                    if (prev) prev.style.opacity = num <= 1 ? '0.5' : '1';
-                    const next = document.getElementById('pdf-next');
-                    if (next) next.style.opacity = num >= pdfDoc.numPages ? '0.5' : '1';
-                    if (pageNumPending !== null) { renderPage(pageNumPending); pageNumPending = null; }
-                });
-            }
-            function queueRenderPage(num) {
-                if (pageRendering) { pageNumPending = num; return; }
-                pageNum = num;
-                renderPage(num);
-            }
-            document.getElementById('pdf-prev').onclick = () => { if (pageNum > 1) queueRenderPage(pageNum - 1); };
-            document.getElementById('pdf-next').onclick = () => { if (pdfDoc && pageNum < pdfDoc.numPages) queueRenderPage(pageNum + 1); };
-            pdfjsLib.getDocument('relazione-stage.pdf').promise.then(pdf => {
-                pdfDoc = pdf;
-                canvas.style.display = 'block';
-                renderPage(1);
-            }).catch(() => {
-                container.innerHTML = '<p style="color: var(--semantic-danger); padding: 40px; font-family: Fira Code, monospace;">Errore caricamento PDF</p>';
-            });
+            import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.mjs').then(pdfjsLib => {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
+                this._pdfjsLib = pdfjsLib;
+                this._loadPDF();
+            }).catch(() => this._fallback());
         };
-        script.onerror = () => {
-            container.innerHTML = '<p style="color: var(--semantic-danger); padding: 40px; font-family: Fira Code, monospace;">Errore caricamento PDF.js. Disabilita Brave Shields per questo sito o usa un altro browser.</p>';
-        };
+        script.onerror = () => this._fallback();
         document.body.appendChild(script);
+    },
+    _fallback: function() {
+        this._loading = false;
+        const container = document.getElementById('pdf-viewer');
+        if (!container) return;
+        container.innerHTML = '<p style="color: var(--semantic-danger); padding: 40px; font-family: Fira Code, monospace;">Errore caricamento PDF.js. Prova un altro browser o disabilita estensioni.</p>';
+    },
+    _loadPDF: function() {
+        const container = document.getElementById('pdf-viewer');
+        if (!container) return;
+        container.innerHTML = '<p style="color: var(--text-tertiary); font-family: Fira Code, monospace; padding: 40px;">Caricamento PDF...</p>';
+        fetch('relazione-stage.pdf')
+            .then(res => res.arrayBuffer())
+            .then(data => {
+                this._pdfjsLib.getDocument({ data }).promise.then(pdf => {
+                    this._pdfDoc = pdf;
+                    this._loaded = true;
+                    this._loading = false;
+                    this._renderPage(1);
+                }).catch(e => {
+                    this._loading = false;
+                    console.error('PDF load error:', e);
+                    container.innerHTML = '<p style="color: var(--semantic-danger); padding: 40px; font-family: Fira Code, monospace;">Errore PDF: ' + e.message + '</p>';
+                });
+            })
+            .catch(e => {
+                this._loading = false;
+                console.error('Fetch error:', e);
+                container.innerHTML = '<p style="color: var(--semantic-danger); padding: 40px; font-family: Fira Code, monospace;">Errore fetch: ' + e.message + '</p>';
+            });
+    },
+    _renderPage: function(num) {
+        if (!this._pdfDoc || this._pageRendering) return;
+        this._pageRendering = true;
+        this._currentPage = num;
+        const canvas = document.getElementById('pdf-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        this._pdfDoc.getPage(num).then(page => {
+            const viewport = page.getViewport({ scale: 1.5 });
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            const renderContext = { canvasContext: ctx, viewport: viewport };
+            return page.render(renderContext).promise;
+        }).then(() => {
+            this._pageRendering = false;
+            this._updateControls();
+        });
+    },
+    _updateControls: function() {
+        const info = document.getElementById('pdf-page-info');
+        if (info) info.textContent = 'Pagina ' + this._currentPage + ' / ' + this._pdfDoc.numPages;
+        const prev = document.getElementById('pdf-prev');
+        if (prev) prev.style.opacity = this._currentPage <= 1 ? '0.5' : '1';
+        const next = document.getElementById('pdf-next');
+        if (next) next.style.opacity = this._currentPage >= this._pdfDoc.numPages ? '0.5' : '1';
     }
+};
+
+AlphaOS.PDFViewer._prevPage = function() {
+    if (this._currentPage > 1) this._renderPage(this._currentPage - 1);
+};
+AlphaOS.PDFViewer._nextPage = function() {
+    if (this._currentPage < this._pdfDoc.numPages) this._renderPage(this._currentPage + 1);
 };
