@@ -102,7 +102,7 @@ AlphaOS = {
                     const go = new IntersectionObserver((entries) => { globeActive = entries[0].isIntersecting; }, { threshold: 0 });
                     go.observe(container);
                 }
-                function animate() { requestAnimationFrame(animate); if (!globeActive || document.hidden) { return; } group.rotation.y += 0.002; group.rotation.z += 0.001; renderer.render(scene, camera); }
+                function animate() { if (!globeActive || document.hidden) { return; } group.rotation.y += 0.002; group.rotation.z += 0.001; renderer.render(scene, camera); requestAnimationFrame(animate); }
                 animate();
                 window.addEventListener('resize', () => { if (container.clientWidth > 0) { camera.aspect = container.clientWidth / container.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(container.clientWidth, container.clientHeight); } });
             } catch (e) { }

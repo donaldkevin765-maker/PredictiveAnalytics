@@ -136,7 +136,7 @@ AlphaOS.History = {
             AlphaOS.Engine.updateRadar(item.risk, item.profit, item.valid);
             document.getElementById('list-pros').innerHTML = item.pros.map(function(p) { return '<li>' + AlphaOS.escapeHtml(p) + '</li>'; }).join('');
             document.getElementById('list-cons').innerHTML = item.cons.map(function(c) { return '<li>' + AlphaOS.escapeHtml(c) + '</li>'; }).join('');
-            document.getElementById('analysis-results').style.display = 'grid';
+            document.getElementById('analysis-results').classList.add('visible');
             AlphaOS.Toast.info('Cronologia', 'Analisi caricata dalla cronologia');
         }, 300);
     },

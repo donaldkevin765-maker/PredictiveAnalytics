@@ -4,13 +4,21 @@ AlphaOS.EliteRadar = {
     init: async function() {
         if (this.initialized) return; this.initialized = true;
         const timeEl = document.getElementById('radar-time'), feedEl = document.getElementById('radar-feed');
-        if (timeEl) { setInterval(() => { const now = new Date(); timeEl.innerText = now.toISOString().replace('T', ' ').substring(0, 19) + " UTC"; }, 1000); }
+        let radarVisible = true;
+        this._radarSectionVisible = true;
+        const radarSection = document.getElementById('elite-radar');
+        if (radarSection && 'IntersectionObserver' in window) {
+            const ro = new IntersectionObserver((entries) => { radarVisible = entries[0].isIntersecting; this._radarSectionVisible = entries[0].isIntersecting; }, { threshold: 0 });
+            ro.observe(radarSection);
+        }
+        if (timeEl) { this._clockTimer = setInterval(() => { if (!this._radarSectionVisible) return; const now = new Date(); timeEl.innerText = now.toISOString().replace('T', ' ').substring(0, 19) + " UTC"; }, 1000); }
         if (feedEl) {
             feedEl.innerHTML = '<div style="color:var(--text-tertiary); font-family:\'Fira Code\', monospace; font-size:0.85rem; padding: 20px 0;">> Inizializzazione stream...<br>> Acquisizione feed RSS...</div>';
             await this.fetchRealNews(); this.calibrateMarketWithRealNews(); feedEl.innerHTML = '';
             let index = 0;
             const addFeed = () => {
                 if (this.realNews.length === 0) return;
+                if (!this._radarSectionVisible) { this._feedTimer = setTimeout(addFeed, 2000); return; }
                 const item = document.createElement('div'); item.style.padding = "20px 0"; item.style.borderBottom = "1px dashed var(--border-light)"; item.style.animation = "fadeIn 0.6s ease forwards";
                 const news = this.realNews[index % this.realNews.length];
                 let titleLow = news.title.toLowerCase(), icon = "\U0001f535", statusColor = "#3b82f6", tagText = "BLU - RUMORE";
@@ -19,7 +27,7 @@ AlphaOS.EliteRadar = {
                 else if (titleLow.match(/(report|analis|strategi|sviluppo|biotech|ricerc)/)) { icon = "\U0001f7e2"; statusColor = "var(--semantic-success)"; tagText = "VERDE - STRATEGICO"; }
                 item.innerHTML = '<div style="display: flex; gap: 15px; align-items: flex-start;"><div style="display: flex; flex-direction: column; gap: 6px; width: 130px; flex-shrink: 0;"><div style="font-family: \'Fira Code\', monospace; font-size: 0.65rem; color: ' + statusColor + '; font-weight: 700; text-transform: uppercase;">' + icon + ' ' + tagText + '</div><div style="font-family: \'Fira Code\', monospace; font-size: 0.6rem; color: var(--text-tertiary); text-transform: uppercase;">' + news.source.substring(0, 15) + '</div></div><a href="' + news.link + '" target="_blank" style="color: var(--text-primary); text-decoration: none; font-size: 0.95rem; line-height: 1.5;">' + news.title + '</a></div>';
                 feedEl.prepend(item); if (feedEl.children.length > 20) feedEl.removeChild(feedEl.lastChild); index++;
-                setTimeout(addFeed, 4000 + Math.random() * 3000);
+                this._feedTimer = setTimeout(addFeed, 4000 + Math.random() * 3000);
             };
             addFeed();
         }
@@ -165,15 +173,9 @@ AlphaOS.EliteRadar = {
     },
     start3HourSyncSimulation: function() {
         let secondsLeft = 3 * 3600; const timerEl = document.getElementById('sync-countdown');
-        let radarVisible = true;
-        const radarSection = document.getElementById('elite-radar');
-        if (radarSection && 'IntersectionObserver' in window) {
-            const ro = new IntersectionObserver((entries) => { radarVisible = entries[0].isIntersecting; }, { threshold: 0 });
-            ro.observe(radarSection);
-        }
-        setInterval(() => { if (!radarVisible) return; secondsLeft--; if (secondsLeft <= 0) secondsLeft = 3 * 3600; let h = Math.floor(secondsLeft / 3600), m = Math.floor((secondsLeft % 3600) / 60), s = secondsLeft % 60; if (timerEl) timerEl.innerText = h.toString().padStart(2, '0') + ':' + m.toString().padStart(2, '0') + ':' + s.toString().padStart(2, '0'); }, 1000);
-        setInterval(() => {
-            if (!radarVisible) return;
+        this._syncTimer = setInterval(() => { if (!this._radarSectionVisible) return; secondsLeft--; if (secondsLeft <= 0) secondsLeft = 3 * 3600; let h = Math.floor(secondsLeft / 3600), m = Math.floor((secondsLeft % 3600) / 60), s = secondsLeft % 60; if (timerEl) timerEl.innerText = h.toString().padStart(2, '0') + ':' + m.toString().padStart(2, '0') + ':' + s.toString().padStart(2, '0'); }, 1000);
+        this._simTimer = setInterval(() => {
+            if (!this._radarSectionVisible) return;
             for (let i = 0; i < 5; i++) {
                 let idx = Math.floor(Math.random() * this.assetData.length), asset = this.assetData[idx];
                 let change = asset.baseTrend === 'up' ? Math.floor(Math.random() * 16) - 4 : Math.floor(Math.random() * 16) - 11;

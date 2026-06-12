@@ -28,10 +28,10 @@ AlphaOS.Engine = {
         if (!el) return;
         const names = { gemini: 'Gemini', openai: 'OpenAI', anthropic: 'Anthropic' };
         const chips = enabled.map(p => {
-            const state = (states && states[p.key]) || 'pending';
+            const state = (states && states[p.id]) || 'pending';
             const dotClass = state === 'loading' ? 'loading' : state === 'done' ? 'done' : state === 'error' ? 'error' : 'pending';
             const chipClass = state === 'done' ? 'engine-provider-chip done' : state === 'loading' || state === 'active' ? 'engine-provider-chip active' : 'engine-provider-chip';
-            return '<span class="' + chipClass + '"><span class="chip-dot ' + dotClass + '"></span>' + (names[p.key] || p.name) + '</span>';
+            return '<span class="' + chipClass + '"><span class="chip-dot ' + dotClass + '"></span>' + (names[p.id] || p.name) + '</span>';
         }).join('');
         el.innerHTML = chips || '<span style="opacity:0.5">Nessun provider configurato</span>';
     },
@@ -82,7 +82,7 @@ AlphaOS.Engine = {
         }
 
         const providerStates = {};
-        results.forEach(r => { providerStates[r.key] = 'done'; });
+        results.forEach(r => { providerStates[r.provider] = 'done'; });
         this._renderProviderChips(enabled, providerStates);
 
         let risks = [], profits = [], valids = [], confidences = [], allPros = [], allCons = [], allSources = [], allFactors = [], allContexts = [], allVerifications = [];
@@ -103,8 +103,8 @@ AlphaOS.Engine = {
                 if (json.verification) allVerifications.push(json.verification);
                 providerScores.push({
                     name: r.name,
-                    key: r.key,
-                    color: r.key === 'gemini' ? '#4285f4' : r.key === 'openai' ? '#10a37f' : '#d97706',
+                    key: r.provider,
+                    color: r.provider === 'gemini' ? '#4285f4' : r.provider === 'openai' ? '#10a37f' : '#d97706',
                     risk: json.risk !== undefined ? parseInt(json.risk) : null,
                     profit: json.profit !== undefined ? parseInt(json.profit) : null,
                     valid: json.validity !== undefined ? parseInt(json.validity) : null

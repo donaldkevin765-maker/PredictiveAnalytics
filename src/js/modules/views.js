@@ -25,7 +25,7 @@ AlphaOS.NeuralNet = {
     deactivate: function() { this.isActive = false; if (this.canvas) this.canvas.classList.remove('active'); if (this.animFrame) cancelAnimationFrame(this.animFrame); },
     animate: function() {
         if (!this.isActive || !this.ctx) return;
-        if (document.hidden) { this.animFrame = requestAnimationFrame(() => this.animate()); return; }
+        if (document.hidden) { this.deactivate(); return; }
         const ctx = this.ctx, w = this.canvas.width, h = this.canvas.height;
         ctx.clearRect(0, 0, w, h);
         this.nodes.forEach(n => { n.x += n.vx; n.y += n.vy; n.pulse += 0.05; if (n.x < 0 || n.x > w) n.vx *= -1; if (n.y < 0 || n.y > h) n.vy *= -1; });
@@ -62,7 +62,7 @@ AlphaOS.Particles = {
     scheduleTick: function() { this.timer = setTimeout(() => this.animate(), 33); },
     animate: function() {
         if (!this.ctx) return;
-        if (!this.visible || document.hidden) { this.scheduleTick(); return; }
+        if (!this.visible || document.hidden) { this.timer = null; return; }
         const ctx = this.ctx, w = this.canvas.width, h = this.canvas.height;
         ctx.clearRect(0, 0, w, h);
         this.particles.forEach(p => {
