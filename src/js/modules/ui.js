@@ -46,7 +46,8 @@ AlphaOS.UI = {
             { target: 'technical-report', icon: '\U0001f4c4', label: 'Report' },
             { target: 'history', icon: '\U0001f4cb', label: 'Storico' },
             { target: 'intro', icon: '\U0001f3ac', label: 'Storia' },
-            { target: 'settings', icon: '\u2699\ufe0f', label: 'Impostazioni' }
+            { target: 'settings', icon: '\u2699\ufe0f', label: 'Impostazioni' },
+            { target: 'qr', icon: '\U0001f4f1', label: 'QR Code' }
         ];
         let isOpen = false;
         const menu = document.createElement('div');
@@ -101,6 +102,7 @@ AlphaOS.UI = {
         if (viewId === 'advisor' || viewId === 'engine') AlphaOS.NeuralNet.activate();
         if (viewId === 'about') { const v = document.getElementById('pitch-video'); if (v) { v.currentTime = 0; v.play().catch(() => {}); } }
         if (viewId === 'technical-report') AlphaOS.PDFViewer.init();
+        if (viewId === 'qr') { this.openQRModal(); return; }
         document.querySelectorAll('.bn-item').forEach(b => b.classList.remove('active'));
         const matched = document.querySelector('.bn-item[data-target="' + viewId + '"]');
         if (matched) matched.classList.add('active');

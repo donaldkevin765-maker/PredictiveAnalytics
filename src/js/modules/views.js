@@ -330,15 +330,17 @@ AlphaOS.PDFViewer = {
         const container = document.getElementById('pdf-viewer');
         if (!container) return;
         container.innerHTML = '<p style="color: var(--text-tertiary); font-family: Fira Code, monospace; padding: 40px;">Caricamento PDF.js...</p>';
+        if (typeof pdfjsLib !== 'undefined' && pdfjsLib.getDocument) {
+            this._pdfjsLib = pdfjsLib;
+            this._loadPDF();
+            return;
+        }
         const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs';
-        script.type = 'module';
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
         script.onload = () => {
-            import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.mjs').then(pdfjsLib => {
-                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
-                this._pdfjsLib = pdfjsLib;
-                this._loadPDF();
-            }).catch(() => this._fallback());
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            this._pdfjsLib = pdfjsLib;
+            this._loadPDF();
         };
         script.onerror = () => this._fallback();
         document.body.appendChild(script);
@@ -354,7 +356,7 @@ AlphaOS.PDFViewer = {
         if (!container) return;
         container.innerHTML = '<p style="color: var(--text-tertiary); font-family: Fira Code, monospace; padding: 40px;">Caricamento PDF...</p>';
         fetch('relazione-stage.pdf')
-            .then(res => res.arrayBuffer())
+            .then(res => { if (!res.ok) throw new Error('HTTP ' + res.status); return res.arrayBuffer(); })
             .then(data => {
                 this._pdfjsLib.getDocument({ data }).promise.then(pdf => {
                     this._pdfDoc = pdf;

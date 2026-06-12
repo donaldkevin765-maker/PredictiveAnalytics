@@ -14,16 +14,22 @@ AlphaOS.API = {
     },
 
     providers: [
-        { id: 'gemini', name: 'Google Gemini 2.5 Pro', keyField: 'apiKey', enabled: true,
+        { id: 'gemini', name: 'Google Gemini 2.0 Flash', keyField: 'apiKey', enabled: true,
           call: async function(prompt) {
               const key = AlphaOS.apiKey;
               if (!key) return null;
-              const res = await AlphaOS.API.fetchWithBackoff(
-                  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-exp-03-25:generateContent?key=' + key,
-                  { method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) }
-              );
-              return res?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+              try {
+                  const res = await AlphaOS.API.fetchWithBackoff(
+                      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + key,
+                      { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) }
+                  );
+                  if (res?.error) throw new Error(res.error.message || JSON.stringify(res.error));
+                  return res?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+              } catch(e) {
+                  console.error('Gemini API error:', e);
+                  throw e;
+              }
           }
         },
         { id: 'openai', name: 'OpenAI GPT-4o', keyField: 'apiKeyOpenAI', enabled: true,
