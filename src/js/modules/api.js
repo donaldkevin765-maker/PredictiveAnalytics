@@ -56,7 +56,12 @@ AlphaOS.API = {
 
     getEnabledProviders: function() {
         return this.providers.filter(p => {
-            const key = AlphaOS[p.keyField];
+            let key = AlphaOS[p.keyField];
+            if (!key || !key.trim()) {
+                const lsKey = 'alphaos-apikey' + (p.keyField === 'apiKey' ? '' : '-' + p.keyField.replace('apiKey', '').toLowerCase());
+                const lsMap = { apiKey: 'alphaos-apikey', apiKeyOpenAI: 'alphaos-apikey-openai', apiKeyAnthropic: 'alphaos-apikey-anthropic' };
+                try { key = localStorage.getItem(lsMap[p.keyField] || 'alphaos-' + p.keyField) || ''; AlphaOS[p.keyField] = key; } catch(e) {}
+            }
             return key && key.trim();
         });
     },

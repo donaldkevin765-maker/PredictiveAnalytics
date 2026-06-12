@@ -116,9 +116,9 @@ AlphaOS = {
             this.apiKeyOpenAI = localStorage.getItem('alphaos-apikey-openai') || '';
             this.apiKeyAnthropic = localStorage.getItem('alphaos-apikey-anthropic') || '';
         } catch(e) {}
-        try { const g = document.getElementById('api-key-input'); if (g) g.value = this.apiKey; } catch(e) {}
-        try { const o = document.getElementById('api-key-openai'); if (o) o.value = this.apiKeyOpenAI; } catch(e) {}
-        try { const a = document.getElementById('api-key-anthropic'); if (a) a.value = this.apiKeyAnthropic; } catch(e) {}
+        try { const g = document.getElementById('api-key-input'); if (g) { g.value = this.apiKey; g.addEventListener('input', function(){ AlphaOS.apiKey = this.value; try{localStorage.setItem('alphaos-apikey',this.value)}catch(e){} }); } } catch(e) {}
+        try { const o = document.getElementById('api-key-openai'); if (o) { o.value = this.apiKeyOpenAI; o.addEventListener('input', function(){ AlphaOS.apiKeyOpenAI = this.value; try{localStorage.setItem('alphaos-apikey-openai',this.value)}catch(e){} }); } } catch(e) {}
+        try { const a = document.getElementById('api-key-anthropic'); if (a) { a.value = this.apiKeyAnthropic; a.addEventListener('input', function(){ AlphaOS.apiKeyAnthropic = this.value; try{localStorage.setItem('alphaos-apikey-anthropic',this.value)}catch(e){} }); } } catch(e) {}
         try { this.I18N.setLanguage('it'); } catch(e) {}
         try { this.CommandPalette.init(); } catch(e) {}
         try { this.UI.init(); } catch(e) {}
